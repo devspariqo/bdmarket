@@ -111,6 +111,51 @@ This is the closest thing to "shared hosting that works". Providers that offer t
 **LiteSpeed-based hosts with Node support**. Confirm with their support that Node **18+** and
 **SSH** are included before buying.
 
+### B0. Hostinger Web Apps — the managed flow
+
+Hostinger's **Web Apps** (Websites → Add Website → Node.js web app) builds and runs the app for
+you from a connected GitHub repository. Two things about it are easy to get wrong:
+
+**1. SQLite will not work here, even though Hostinger is not serverless.** Builds land in
+`~/domains/{domain}/hbuilds/current/`, and `current` is a symlink to the live build. **Every
+redeploy creates a new build directory**, so a SQLite file inside the app is wiped on each deploy.
+Use a hosted database.
+
+**2. The "Connect a database" wizard offers Supabase and MongoDB Atlas** — and it sets
+`SUPABASE_URL` / `SUPABASE_ANON_KEY`, which are Supabase's *client* credentials, **not** a Postgres
+connection string. Prisma cannot use those. Instead:
+
+1. Create a free project at [supabase.com](https://supabase.com).
+2. In Supabase, open **Project Settings → Database → Connection string → URI** and copy the
+   Postgres URL. It looks like:
+   ```
+   postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true
+   ```
+   Prefer the **pooler** host on port `6543` — the direct connection is limited to a small number
+   of clients and will exhaust connections under load.
+3. Set the provider to match, and push the schema:
+   ```bash
+   node scripts/use-db.js postgres
+   npx prisma db push
+   npm run db:seed          # optional demo catalogue
+   ```
+4. Commit the schema change and push — Hostinger rebuilds automatically.
+
+**Environment variables** live at **hPanel → your website dashboard → Environment variables**.
+They are injected into **both the build and the running app**, and persist across deployments, so
+set them once:
+
+| Key | Value |
+| --- | --- |
+| `DATABASE_URL` | the Supabase Postgres URI from step 2 |
+| `AUTH_SECRET` | a fresh 96-character hex string |
+| `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` |
+
+Saving the variables **triggers a redeploy**, which is what makes them take effect. `NEXT_PUBLIC_*`
+is baked in at build time, so it must be set *before* the build that needs it.
+
+If the app deploys green but every page 500s, open **`/api/health`** — it names the cause.
+
 ### B1. Prepare the project locally (on your PC)
 
 Do this **before** uploading — you cannot reliably compile on shared hosting.
