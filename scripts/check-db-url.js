@@ -19,6 +19,71 @@ const path = require('path');
 
 const args = process.argv.slice(2);
 
+/**
+ * --build mode: assemble a correct URL from its parts.
+ *
+ *   node scripts/check-db-url.js --build \
+ *     --host aws-0-ap-south-1.pooler.supabase.com \
+ *     --user postgres.abcdefghijkl \
+ *     --password 'Romen#dev4564' \
+ *     --db postgres
+ *
+ * The password is percent-encoded for you, which is the part people most often
+ * get wrong — base64 is a common mistake and is NOT valid in a URL.
+ */
+if (args[0] === '--build') {
+  const flags = {};
+  for (let i = 1; i < args.length; i += 2) {
+    const key = (args[i] || '').replace(/^--/, '');
+    flags[key] = args[i + 1];
+  }
+
+  const missing = ['host', 'user', 'password'].filter((k) => !flags[k]);
+  if (missing.length) {
+    console.error('\n  Missing required value(s): ' + missing.map((m) => '--' + m).join(', '));
+    console.error('\n  Usage:');
+    console.error('    node scripts/check-db-url.js --build \\');
+    console.error('      --host aws-0-ap-south-1.pooler.supabase.com \\');
+    console.error('      --user postgres.abcdefghijkl \\');
+    console.error("      --password 'your-password' \\");
+    console.error('      --db postgres            # optional, defaults to postgres');
+    console.error('      --port 6543              # optional; 6543 adds ?pgbouncer=true');
+    console.error('');
+    process.exit(1);
+  }
+
+  const db = flags.db || 'postgres';
+  const port = flags.port || '5432';
+  const user = encodeURIComponent(flags.user);
+  const password = encodeURIComponent(flags.password);
+  const needsPgbouncer = port === '6543';
+
+  const url =
+    `postgresql://${user}:${password}@${flags.host}:${port}/${db}` +
+    (needsPgbouncer ? '?pgbouncer=true' : '');
+
+  console.log('');
+  console.log('  DATABASE_URL');
+  console.log('  ' + url);
+  console.log('');
+  if (flags.password !== password) {
+    console.log('  The password was percent-encoded:');
+    console.log('    ' + flags.password.replace(/./g, '*') + `  (${flags.password.length} chars)`);
+    console.log('    -> ' + password);
+    console.log('');
+  }
+  if (needsPgbouncer) {
+    console.log('  Port 6543 is the transaction pooler, so ?pgbouncer=true was added.');
+    console.log('  This URL is for the running app. For `prisma db push`, use port 5432');
+    console.log('  with no ?pgbouncer=true instead.');
+    console.log('');
+  }
+  console.log('  Paste it into your host\'s environment variables as DATABASE_URL.');
+  console.log('  Then check it with:  npm run db:check-url "<the url>"');
+  console.log('');
+  process.exit(0);
+}
+
 // ── --encode mode ──
 if (args[0] === '--encode') {
   const raw = args[1];
@@ -135,7 +200,93 @@ if (!scheme) {
   });
 }
 
-// 8. Transaction-pooler URLs need ?pgbouncer=true for Prisma. Transaction mode
+// 8. Placeholder values left in place. A URL like
+//      postgresql://user:pw@host:5432/db
+// parses perfectly, so it fails later as "host could not be reached" — which
+// points at the network rather than at the template nobody finished editing.
+const PLACEHOLDER_HOSTS = /^(host|your[-_]?host|hostname|db|database|server|example\.com|yourdomain\.com|xxx+|<host>|\[host\])$/i;
+const PLACEHOLDER_USERS = /^(user|username|your[-_]?user|dbuser|<user>|\[user\])$/i;
+const PLACEHOLDER_DBS = /^(dbname|database|your[-_]?db|<db>|\[db\])$/i;
+
+let hostGuess = '';
+let userGuess = '';
+try {
+  const u = new URL(raw.replace(/\s/g, ''));
+  hostGuess = u.hostname;
+  userGuess = decodeURIComponent(u.username || '');
+} catch {
+  /* the parse check below reports this properly */
+}
+
+if (hostGuess && PLACEHOLDER_HOSTS.test(hostGuess)) {
+  problems.push({
+    what: `The host is still the placeholder "${hostGuess}"`,
+    fix:
+      'Replace it with the real host from your provider\'s connection dialog. For Supabase that ' +
+      'is the pooler host (aws-N-REGION.pooler.supabase.com) or db.PROJECT-REF.supabase.co — ' +
+      'it cannot be guessed, so copy it from the Connect dialog.',
+  });
+}
+
+if (userGuess && PLACEHOLDER_USERS.test(userGuess)) {
+  problems.push({
+    what: `The username is still the placeholder "${userGuess}"`,
+    fix:
+      'Use the real username. Supabase\'s pooler uses postgres.PROJECT-REF (note the dot); the ' +
+      'direct connection uses just postgres.',
+  });
+}
+
+const dbName = (() => {
+  try {
+    return new URL(raw.replace(/\s/g, '')).pathname.replace(/^\//, '');
+  } catch {
+    return '';
+  }
+})();
+
+if (dbName && PLACEHOLDER_DBS.test(dbName)) {
+  problems.push({
+    what: `The database name is still the placeholder "${dbName}"`,
+    fix: 'Supabase databases are called "postgres" unless you created another one.',
+  });
+}
+
+// 9. Base64 in the password. Base64 padding ("=" or "==") is the giveaway, and
+//    base64 is NOT a valid way to escape a URL password — it mangles the value
+//    into something the server rejects. Percent-encoding is what is needed.
+//
+//    Note: URL.password comes back still percent-encoded, so "==" arrives as
+//    "%3D%3D" and must be decoded before the base64 shape is visible.
+const rawPassword = (() => {
+  try {
+    return decodeURIComponent(new URL(raw.replace(/\s/g, '')).password || '');
+  } catch {
+    return '';
+  }
+})();
+if (rawPassword && /^[A-Za-z0-9+/]{8,}={1,2}$/.test(rawPassword)) {
+  let decoded = '';
+  try {
+    decoded = Buffer.from(rawPassword, 'base64').toString('utf8');
+  } catch {
+    /* not valid base64 after all */
+  }
+  const looksLikeText = decoded && /^[\x20-\x7e]+$/.test(decoded);
+  problems.push({
+    what: 'The password looks base64-encoded (it ends in "=" or "==")',
+    fix:
+      'Base64 is not valid here — a URL password must be percent-encoded, and base64 changes ' +
+      'the value so the server rejects it. Run ' +
+      '`npm run db:check-url -- --encode "<your real password>"` to get the correct form.' +
+      (looksLikeText
+        ? ` The value decodes to ${decoded.length} characters of readable text, which confirms ` +
+          'it was base64-encoded rather than left as the literal password.'
+        : ''),
+  });
+}
+
+// 10. Transaction-pooler URLs need ?pgbouncer=true for Prisma. Transaction mode
 //    does not support prepared statements, and without the flag Prisma keeps
 //    using them and fails at query time with a confusing protocol error.
 if (/pooler\.supabase\.com:6543|:6543\//.test(raw) && !/pgbouncer=true/i.test(raw)) {
