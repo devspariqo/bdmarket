@@ -26,16 +26,38 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const [config, cartCount, customer, headerMenu, paymentLogos] = await Promise.all([
-    getSiteConfig(),
-    getCartCount(),
-    getCustomerSession(),
-    prisma.menu.findUnique({ where: { location: 'header' } }),
-    getPaymentLogos(),
-  ]);
+/**
+ * Read a navigation menu, tolerating an unavailable database.
+ *
+ * This layout wraps every storefront page, including ones Next prerenders at
+ * build time, so a throw here would fail the build on a host where the database
+ * is not reachable yet. A missing menu simply renders an empty nav.
+ */
+async function safeMenu(location: string) {
+  try {
+    const menu = await prisma.menu.findUnique({ where: { location } });
+    return parseJSON<any[]>(menu?.items, []);
+  } catch (err) {
+    console.warn(
+      `[menu] could not read "${location}" menu:`,
+      err instanceof Error ? err.message : err
+    );
+    return [];
+  }
+}
 
-  const nav = parseJSON<any[]>(headerMenu?.items, []);
+export default async function StoreLayout({ children }: { children: React.ReactNode }) {
+  const [config, cartCount, customer, nav, paymentLogos, footer1, footer2, footer3] =
+    await Promise.all([
+      getSiteConfig(),
+      getCartCount(),
+      getCustomerSession(),
+      safeMenu('header'),
+      getPaymentLogos(),
+      safeMenu('footer-1'),
+      safeMenu('footer-2'),
+      safeMenu('footer-3'),
+    ]);
 
   // JSON-LD Organization + WebSite
   const jsonLd = {
@@ -92,18 +114,9 @@ export default async function StoreLayout({ children }: { children: React.ReactN
           config={config}
           paymentLogos={paymentLogos}
           footerMenus={{
-            'footer-1': parseJSON<any[]>(
-              (await prisma.menu.findUnique({ where: { location: 'footer-1' } }))?.items,
-              []
-            ),
-            'footer-2': parseJSON<any[]>(
-              (await prisma.menu.findUnique({ where: { location: 'footer-2' } }))?.items,
-              []
-            ),
-            'footer-3': parseJSON<any[]>(
-              (await prisma.menu.findUnique({ where: { location: 'footer-3' } }))?.items,
-              []
-            ),
+            'footer-1': footer1,
+            'footer-2': footer2,
+            'footer-3': footer3,
           }}
         />
         <MobileBottomNav cartCount={cartCount} customer={customer} />

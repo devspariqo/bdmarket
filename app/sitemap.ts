@@ -13,42 +13,68 @@ const STATIC_PATHS: { path: string; priority: number; freq: MetadataRoute.Sitema
   { path: '/register', priority: 0.2, freq: 'yearly' },
 ];
 
+/**
+ * Sitemap, generated at build time.
+ *
+ * The database queries are wrapped in a try/catch so a build on a host where the
+ * database is not reachable yet still produces a valid sitemap containing the
+ * static routes, rather than failing the whole deployment. The crawler-visible
+ * result is simply a smaller sitemap; it is regenerated with the full set once
+ * the database is available at runtime (`revalidate` below).
+ */
+export const revalidate = 3600;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const config = await getSiteConfig();
   const base = (config.siteUrl || 'http://localhost:3000').replace(/\/$/, '');
 
-  const [products, categories, brands, posts, pages] = await Promise.all([
-    prisma.product.findMany({
-      where: { status: 'published' },
-      select: { slug: true, updatedAt: true },
-      orderBy: { updatedAt: 'desc' },
-      take: 5000,
-    }),
-    prisma.category.findMany({
-      where: { status: 'active' },
-      select: { slug: true, updatedAt: true },
-    }),
-    prisma.brand.findMany({
-      where: { status: 'active' },
-      select: { slug: true },
-    }),
-    prisma.post.findMany({
-      where: { status: 'published' },
-      select: { slug: true, updatedAt: true },
-    }),
-    prisma.page.findMany({
-      where: { status: 'published' },
-      select: { slug: true, updatedAt: true },
-    }),
-  ]);
+  const staticEntries: MetadataRoute.Sitemap = STATIC_PATHS.map((s) => ({
+    url: `${base}${s.path}`,
+    lastModified: new Date(),
+    changeFrequency: s.freq,
+    priority: s.priority,
+  }));
+
+  let products: { slug: string; updatedAt: Date }[] = [];
+  let categories: { slug: string; updatedAt: Date }[] = [];
+  let brands: { slug: string }[] = [];
+  let posts: { slug: string; updatedAt: Date }[] = [];
+  let pages: { slug: string; updatedAt: Date }[] = [];
+
+  try {
+    [products, categories, brands, posts, pages] = await Promise.all([
+      prisma.product.findMany({
+        where: { status: 'published' },
+        select: { slug: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 5000,
+      }),
+      prisma.category.findMany({
+        where: { status: 'active' },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.brand.findMany({
+        where: { status: 'active' },
+        select: { slug: true },
+      }),
+      prisma.post.findMany({
+        where: { status: 'published' },
+        select: { slug: true, updatedAt: true },
+      }),
+      prisma.page.findMany({
+        where: { status: 'published' },
+        select: { slug: true, updatedAt: true },
+      }),
+    ]);
+  } catch (err) {
+    console.warn(
+      '[sitemap] database unavailable, emitting static routes only:',
+      err instanceof Error ? err.message : err
+    );
+  }
 
   return [
-    ...STATIC_PATHS.map((s) => ({
-      url: `${base}${s.path}`,
-      lastModified: new Date(),
-      changeFrequency: s.freq,
-      priority: s.priority,
-    })),
+    ...staticEntries,
     ...categories.map((c) => ({
       url: `${base}/category/${c.slug}`,
       lastModified: c.updatedAt,

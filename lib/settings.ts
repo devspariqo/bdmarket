@@ -7,12 +7,37 @@ let cache: Map<string, string> | null = null;
 let cacheTime = 0;
 const TTL = 5000;
 
+/**
+ * Read every setting as a flat key/value map.
+ *
+ * Deliberately fails soft. This is called from `RootLayout`, so it runs for
+ * *every* page — including ones Next prerenders at build time. On a fresh
+ * deployment there may be no database yet (an unseeded SQLite file, or a
+ * Postgres instance that is not reachable during the build), and a throw here
+ * would fail the entire build rather than one request.
+ *
+ * Every consumer already supplies its own defaults (`getSiteConfig()` below
+ * falls back to sensible values, `getPaymentLogos()` to the built-in nine), so
+ * returning an empty map degrades to "default theme, default copy" instead of
+ * a broken deploy.
+ *
+ * Failures are intentionally NOT cached, so the next request retries once the
+ * database becomes available.
+ */
 export async function getAllSettings(force = false): Promise<Record<string, string>> {
   if (!force && cache && Date.now() - cacheTime < TTL) return Object.fromEntries(cache);
-  const rows = await prisma.setting.findMany();
-  cache = new Map(rows.map((r) => [r.key, r.value]));
-  cacheTime = Date.now();
-  return Object.fromEntries(cache);
+  try {
+    const rows = await prisma.setting.findMany();
+    cache = new Map(rows.map((r) => [r.key, r.value]));
+    cacheTime = Date.now();
+    return Object.fromEntries(cache);
+  } catch (err) {
+    console.warn(
+      '[settings] database unavailable, falling back to defaults:',
+      err instanceof Error ? err.message : err
+    );
+    return {};
+  }
 }
 
 export async function getSetting(key: string, fallback = ''): Promise<string> {
