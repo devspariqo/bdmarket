@@ -156,6 +156,21 @@ is baked in at build time, so it must be set *before* the build that needs it.
 
 If the app deploys green but every page 500s, open **`/api/health`** — it names the cause.
 
+**`invalid domain character in database URL`** — Prisma cannot parse `DATABASE_URL`. Verified
+against Prisma's own parser, this specific message means the **host** portion is malformed, which
+in practice is a space, a line break or a quote character that came along with a wrapped paste.
+Re-paste the value as one unbroken line with no surrounding quotes. Diagnose it locally with:
+
+```bash
+npm run db:check-url                                  # reads DATABASE_URL from .env
+npm run db:check-url "postgresql://..."               # checks a specific value
+npm run db:check-url -- --encode "p@ss#w0rd"          # percent-encode a password
+```
+
+A password containing `@`, `#`, `/` or `:` must be percent-encoded — `@` becomes `%40`, `#`
+becomes `%23`, `/` becomes `%2F`. Note that an unencoded `@` produces a *different* error
+(`Can't reach database server`), not this one.
+
 ### B1. Prepare the project locally (on your PC)
 
 Do this **before** uploading — you cannot reliably compile on shared hosting.

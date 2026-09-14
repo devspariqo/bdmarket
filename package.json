@@ -18,6 +18,7 @@
     "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
     "db:use": "node scripts/use-db.js",
     "db:deploy": "prisma generate && prisma db push",
+    "db:check-url": "node scripts/check-db-url.js",
     "cache:clear": "node scripts/clear-cache.js",
     "dev:clean": "node scripts/clear-cache.js && next dev -p 3000"
   },

@@ -25,6 +25,29 @@ type Diagnosis = {
 function diagnose(err: unknown): Diagnosis {
   const raw = err instanceof Error ? err.message : String(err);
 
+  // Malformed connection string. Verified against Prisma's own parser: this
+  // exact message ("invalid domain character") is raised when the *host*
+  // portion contains an illegal character — in practice a space or newline
+  // introduced by a wrapped paste, or a stray quote. A leftover
+  // [YOUR-PASSWORD] placeholder and an unencoded '@' in the password produce
+  // *different* errors, so they are called out separately below.
+  if (
+    /invalid domain character/i.test(raw) ||
+    /Error parsing connection string/i.test(raw) ||
+    /provided database string is invalid/i.test(raw)
+  ) {
+    return {
+      problem: 'database-url-malformed',
+      hint:
+        'DATABASE_URL is set but cannot be parsed. Prisma reports "invalid domain character" ' +
+        'when the host part of the URL is malformed, which in practice means a space, a line ' +
+        'break, or a quote character has crept into the value — usually from pasting a wrapped ' +
+        'connection string into a hosting dashboard. Re-paste it as one unbroken line, with no ' +
+        'surrounding quotes. If the password contains "@", "#", "/" or ":", percent-encode it. ' +
+        'Run `node scripts/check-db-url.js "<your-url>"` locally to see the exact problem.',
+    };
+  }
+
   // Prisma validation: the URL scheme does not match the datasource provider.
   // Almost always a Postgres URL while schema.prisma still says `provider = "sqlite"`.
   if (/must start with the protocol/i.test(raw) || /Error validating datasource/i.test(raw)) {
