@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>BD Market — Setup</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:#eef1f6;color:#1b2434;
+       font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  a{color:#0b6b4f}
+  .top{background:#0f3d2e;color:#fff;padding:22px 0}
+  .top .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{width:42px;height:42px;border-radius:11px;background:#16a06f;display:grid;place-items:center;
+        font-weight:800;font-size:17px;letter-spacing:-.5px;flex:0 0 auto}
+  .top h1{margin:0;font-size:19px;font-weight:700}
+  .top p{margin:2px 0 0;font-size:13px;opacity:.75}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+  main{padding:28px 0 64px}
+  .steps{display:flex;gap:8px;margin:0 0 22px;flex-wrap:wrap}
+  .steps li{list-style:none;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dbe2ec;
+            border-radius:999px;padding:7px 15px 7px 9px;font-size:13px;color:#66748c}
+  .steps li b{width:21px;height:21px;border-radius:50%;background:#e5eaf2;color:#66748c;
+              display:grid;place-items:center;font-size:12px;font-weight:700}
+  .steps li.on{border-color:#0f3d2e;color:#0f3d2e;font-weight:600;background:#fff}
+  .steps li.on b{background:#0f3d2e;color:#fff}
+  .steps li.ok b{background:#16a06f;color:#fff}
+  .steps li.ok{color:#0f3d2e;border-color:#a9dfc9}
+  .card{background:#fff;border:1px solid #dbe2ec;border-radius:14px;padding:26px;margin:0 0 18px;
+        box-shadow:0 1px 2px rgba(16,32,58,.04)}
+  .card h2{margin:0 0 4px;font-size:18px}
+  .card .sub{margin:0 0 20px;color:#66748c;font-size:14px}
+  .msg{border-radius:10px;padding:13px 16px;margin:0 0 16px;font-size:14px;border:1px solid}
+  .msg.err{background:#fdf1f1;border-color:#f2c4c4;color:#8f2222}
+  .msg.ok{background:#f0fbf6;border-color:#b6e3ce;color:#0f5b3f}
+  .msg.warn{background:#fffaeb;border-color:#f2dfa8;color:#7a5b06}
+  .msg ul{margin:6px 0 0;padding-left:20px}
+  table.req{width:100%;border-collapse:collapse;font-size:14px}
+  table.req td{padding:9px 6px;border-bottom:1px solid #edf1f6;vertical-align:top}
+  table.req tr:last-child td{border-bottom:0}
+  table.req .who{width:26px;font-weight:700}
+  table.req .nm{width:230px;font-weight:600}
+  table.req .dt{color:#66748c}
+  .yes{color:#16a06f}
+  .no{color:#c0392b}
+  .opt{color:#b98900}
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+  .grid.one{grid-template-columns:1fr}
+  label{display:block;font-weight:600;font-size:13.5px;margin:0 0 5px}
+  label .hint{font-weight:400;color:#8593a8}
+  input[type=text],input[type=password],input[type=email],input[type=number],input[type=url]{
+    width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;font-size:14.5px;
+    background:#fff;color:#1b2434;font-family:inherit}
+  input:focus{outline:0;border-color:#16a06f;box-shadow:0 0 0 3px rgba(22,160,111,.16)}
+  .field{margin:0 0 16px}
+  .cb{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;font-size:14px}
+  .cb input{margin:3px 0 0;width:16px;height:16px;flex:0 0 auto}
+  .cb span{font-weight:400;color:#42506a}
+  .cb b{display:block;color:#1b2434;font-size:14px}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:#0f3d2e;color:#fff;border:0;
+       padding:12px 24px;border-radius:9px;font-size:15px;font-weight:600;cursor:pointer;
+       text-decoration:none;font-family:inherit}
+  .btn:hover{background:#14523c}
+  .btn.alt{background:#fff;color:#0f3d2e;border:1px solid #cbd5e1}
+  .btn.alt:hover{background:#f4f7fa}
+  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .note{font-size:13px;color:#8593a8;margin:14px 0 0}
+  pre.log{background:#0f1b17;color:#a7e8c9;border-radius:11px;padding:16px 18px;font-size:13px;
+          line-height:1.75;overflow-x:auto;margin:0 0 18px;
+          font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre.log b{color:#fff;font-weight:600}
+  .done-hero{text-align:center;padding:8px 0 4px}
+  .tick{width:56px;height:56px;border-radius:50%;background:#e7f8f0;color:#16a06f;
+        display:grid;place-items:center;margin:0 auto 14px;font-size:28px;font-weight:700}
+  .creds{background:#f6f9fc;border:1px dashed #cbd5e1;border-radius:11px;padding:16px 18px;margin:0 0 18px}
+  .creds div{display:flex;gap:12px;padding:5px 0;font-size:14px;flex-wrap:wrap}
+  .creds .k{width:110px;color:#66748c;flex:0 0 auto}
+  .creds .v{font-weight:600;word-break:break-all}
+  .links{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 8px}
+  .warnbox{background:#fff8e6;border:1px solid #f0dda6;border-radius:11px;padding:14px 16px;
+           font-size:13.5px;color:#6d5207}
+  .warnbox b{color:#4d3a03}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}table.req .nm{width:auto}
+    .steps li{font-size:12px;padding:6px 11px 6px 8px}.card{padding:20px 17px}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="logo">BD</div>
+    <div>
+      <h1>BD Market — Setup</h1>
+      <p>Bangladesh fashion &amp; lifestyle store · PHP 8.2.29</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <ul class="steps">
+    <li class="on"><b>1</b>Requirements</li><li class=""><b>2</b>Database</li><li class=""><b>3</b>Store &amp; admin</li><li class=""><b>4</b>Finish</li>  </ul>
+
+    <div class="card">
+    <h2>Your server is missing something</h2>
+    <p class="sub">Everything below is checked automatically before any file is written.</p>
+
+          <div class="msg err">
+        <b>Installation cannot continue yet.</b> Fix the items marked with a red cross, then reload this page.
+        <ul>
+                                                                                                                                                                                                                    <li>config/ is writable — not writable — set permissions to 755 (database credentials)</li>
+                                                <li>uploads/ is writable — not writable — set permissions to 755 (product images)</li>
+                                                                                                </ul>
+      </div>
+    
+    <table class="req">
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">PHP version</td>
+          <td class="dt">8.2.29 — supported</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">Extension: pdo</td>
+          <td class="dt">loaded</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">Extension: pdo_mysql</td>
+          <td class="dt">loaded</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">Extension: mbstring</td>
+          <td class="dt">loaded</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">Extension: json</td>
+          <td class="dt">loaded</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">Extension: fileinfo</td>
+          <td class="dt">loaded</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">Extension: openssl</td>
+          <td class="dt">loaded</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">Extension: gd</td>
+          <td class="dt">loaded</td>
+        </tr>
+              <tr>
+          <td class="who no">
+            &#10007;          </td>
+          <td class="nm">config/ is writable</td>
+          <td class="dt">not writable — set permissions to 755 (database credentials)</td>
+        </tr>
+              <tr>
+          <td class="who no">
+            &#10007;          </td>
+          <td class="nm">uploads/ is writable</td>
+          <td class="dt">not writable — set permissions to 755 (product images)</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">sql/schema.sql readable</td>
+          <td class="dt">20,599 bytes — table definitions</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">sql/seed.sql readable</td>
+          <td class="dt">32,309 bytes — demo content</td>
+        </tr>
+              <tr>
+          <td class="who yes">
+            &#10003;          </td>
+          <td class="nm">URL rewriting</td>
+          <td class="dt">cannot detect — the app falls back to index.php/… paths automatically</td>
+        </tr>
+          </table>
+
+    <p class="note">A yellow <b>!</b> is a warning, not a blocker — the store still runs without it.</p>
+
+      </div>
+
+
+</main>
+</body>
+</html>

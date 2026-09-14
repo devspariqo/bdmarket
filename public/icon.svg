@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="BD Market">
+  <rect width="512" height="512" rx="112" fill="#006a4e"/>
+  <circle cx="216" cy="256" r="118" fill="#f42a41"/>
+  <text x="300" y="322" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+        font-size="200" font-weight="700" fill="#ffffff" text-anchor="middle">BD</text>
+</svg>

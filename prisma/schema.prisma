@@ -1,0 +1,513 @@
+// BD Market — Prisma schema
+// Bangladesh Fashion & Lifestyle eCommerce Platform
+
+generator client {
+  provider = "prisma-client-js"
+  // Generated for every platform this project may build or run on, so a local
+  // build can be deployed to Linux without "Query engine library not found".
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────── USERS & AUTH ─────────────────────────
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         String    @default("CUSTOMER")
+  avatar       String?
+  status       String    @default("active") // active | suspended
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  customer     Customer?
+  auditLogs    AuditLog[]
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  meta      String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+}
+
+// ───────────────────────── CUSTOMERS ─────────────────────────
+
+model Customer {
+  id            String    @id @default(cuid())
+  userId        String?   @unique
+  user          User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  email         String    @unique
+  name          String
+  phone         String?
+  gender        String?
+  birthday      DateTime?
+  district      String?
+  tags          String?   // comma separated
+  notes         String?
+  totalSpent    Float     @default(0)
+  orderCount    Int       @default(0)
+  acceptsMarketing Boolean @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  addresses     Address[]
+  orders        Order[]
+  reviews       Review[]
+  carts         Cart[]
+
+  @@index([email])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  label      String   @default("Home")
+  fullName   String
+  phone      String
+  division   String
+  district   String
+  area       String?
+  street     String
+  postcode   String?
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+// ───────────────────────── CATALOG ─────────────────────────
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  nameBn      String?
+  slug        String     @unique
+  description String?
+  image       String?
+  icon        String?
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryTree")
+  position    Int        @default(0)
+  featured    Boolean    @default(false)
+  status      String     @default("active")
+  metaTitle   String?
+  metaDesc    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  products    Product[]
+
+  @@index([slug])
+}
+
+model Brand {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  logo      String?
+  description String?
+  country   String?
+  featured  Boolean   @default(false)
+  status    String    @default("active")
+  createdAt DateTime  @default(now())
+  products  Product[]
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  name           String
+  nameBn         String?
+  slug           String   @unique
+  sku            String   @unique
+  barcode        String?
+  type           String   @default("simple") // simple | variable
+  description    String?
+  shortDesc      String?
+  price          Float
+  comparePrice   Float?
+  costPrice      Float?
+  currency       String   @default("BDT")
+  stock          Int      @default(0)
+  lowStockAlert  Int      @default(5)
+  manageStock    Boolean  @default(true)
+  stockStatus    String   @default("instock") // instock | outofstock | onbackorder
+  weight         Float?
+  dimensions     String?
+  categoryId     String?
+  category       Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brandId        String?
+  brand          Brand?   @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  images         String   // JSON array of urls
+  tags           String?  // comma separated
+  attributes     String?  // JSON [{name, values[]}]
+  variants       String?  // JSON [{id,size,color,price,stock,sku}]
+  featured       Boolean  @default(false)
+  bestseller     Boolean  @default(false)
+  newArrival     Boolean  @default(true)
+  status         String   @default("published") // published | draft | archived
+  rating         Float    @default(0)
+  reviewCount    Int      @default(0)
+  soldCount      Int      @default(0)
+  viewCount      Int      @default(0)
+  // Fashion-specific
+  fabric         String?
+  occasion       String?
+  fit            String?
+  careInstructions String?
+  countryOfOrigin String  @default("Bangladesh")
+  // SEO
+  metaTitle      String?
+  metaDesc       String?
+  metaKeywords   String?
+  ogImage        String?
+  canonical      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  orderItems     OrderItem[]
+  reviews        Review[]
+  cartItems      CartItem[]
+  wishlist       Wishlist[]
+
+  @@index([slug])
+  @@index([status, featured])
+  @@index([categoryId])
+  @@index([price])
+}
+
+// ───────────────────────── CART & WISHLIST ─────────────────────────
+
+model Cart {
+  id         String     @id @default(cuid())
+  token      String     @unique
+  customerId String?
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  couponCode String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  items      CartItem[]
+}
+
+model CartItem {
+  id        String  @id @default(cuid())
+  cartId    String
+  cart      Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant   String?
+  qty       Int     @default(1)
+  price     Float
+
+  @@unique([cartId, productId, variant])
+}
+
+model Wishlist {
+  id         String   @id @default(cuid())
+  customerId String
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, productId])
+}
+
+// ───────────────────────── ORDERS ─────────────────────────
+
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique
+  customerId     String?
+  customer       Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  email          String
+  phone          String
+  customerName   String
+  status         String      @default("PENDING")
+  paymentStatus  String      @default("unpaid") // paid | unpaid | refunded | partial
+  paymentMethod  String      @default("cod") // cod | bkash | nagad | rocket | card | sslcommerz
+  paymentRef     String?
+  subtotal       Float
+  discount       Float       @default(0)
+  shippingCost   Float       @default(0)
+  tax            Float       @default(0)
+  total          Float
+  couponCode     String?
+  currency       String      @default("BDT")
+  shippingMethod String?
+  shippingZone   String?
+  // Address snapshot
+  shipDivision   String
+  shipDistrict   String
+  shipArea       String?
+  shipStreet     String
+  shipPostcode   String?
+  customerNote   String?
+  adminNote      String?
+  trackingNumber String?
+  courier        String?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  confirmedAt    DateTime?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+
+  items          OrderItem[]
+  timeline       OrderEvent[]
+
+  @@index([orderNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+  variant     String?
+  sku         String?
+  image       String?
+  price       Float
+  qty         Int
+  total       Float
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    String
+  note      String?
+  by        String?
+  createdAt DateTime @default(now())
+}
+
+// ───────────────────────── MARKETING ─────────────────────────
+
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  description   String?
+  type          String    @default("percent") // percent | fixed | freeship
+  value         Float
+  minOrder      Float     @default(0)
+  maxDiscount   Float?
+  usageLimit    Int?
+  usedCount     Int       @default(0)
+  perCustomer   Int       @default(1)
+  appliesTo     String    @default("all") // all | category | product
+  targetIds     String?
+  startsAt      DateTime?
+  expiresAt     DateTime?
+  status        String    @default("active")
+  createdAt     DateTime  @default(now())
+
+  @@index([code])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  authorName  String
+  authorEmail String
+  rating      Int
+  title       String?
+  body        String
+  status      String   @default("pending") // pending | approved | spam
+  verified    Boolean  @default(false)
+  helpful     Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([productId, status])
+}
+
+// ───────────────────────── CMS ─────────────────────────
+
+model Page {
+  id          String    @id @default(cuid())
+  title       String
+  titleBn     String?
+  slug        String    @unique
+  content     String
+  excerpt     String?
+  template    String    @default("default")
+  status      String    @default("published") // published | draft
+  showInMenu  Boolean   @default(false)
+  menuOrder   Int       @default(0)
+  featuredImage String?
+  metaTitle   String?
+  metaDesc    String?
+  metaKeywords String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Post {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  excerpt       String?
+  content       String
+  coverImage    String?
+  category      String?
+  tags          String?
+  authorName    String    @default("BD Market Team")
+  status        String    @default("published") // published | draft
+  featured      Boolean   @default(false)
+  readMinutes   Int       @default(4)
+  viewCount     Int       @default(0)
+  metaTitle     String?
+  metaDesc      String?
+  publishedAt   DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  name      String
+  location  String   @unique // header | footer-1 | footer-2 | mobile
+  items     String   // JSON [{label, labelBn, href, children[]}]
+  status    String   @default("active")
+  updatedAt DateTime @updatedAt
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  image     String
+  ctaLabel  String?
+  ctaHref   String?
+  position  String   @default("hero") // hero | promo-1 | promo-2 | strip
+  bgColor   String?
+  textColor String?
+  position_order Int  @default(0)
+  status    String   @default("active")
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  filename  String
+  url       String
+  mimeType  String?
+  size      Int?
+  width     Int?
+  height    Int?
+  alt       String?
+  folder    String   @default("uploads")
+  createdAt DateTime @default(now())
+}
+
+// ───────────────────────── SETTINGS ─────────────────────────
+
+model Setting {
+  id        String   @id @default(cuid())
+  group     String   // general | store | seo | checkout | shipping | payment | email | sms | social | appearance | analytics | advanced
+  key       String   @unique
+  value     String
+  type      String   @default("text") // text | textarea | number | boolean | select | json | image
+  label     String?
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+}
+
+model ShippingZone {
+  id          String   @id @default(cuid())
+  name        String
+  districts   String   // comma separated
+  method      String   @default("flat") // flat | free | weight | freeship_over
+  rate        Float    @default(0)
+  freeOver    Float?
+  minDays     Int      @default(2)
+  maxDays     Int      @default(5)
+  codEnabled  Boolean  @default(true)
+  status      String   @default("active")
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model PaymentMethod {
+  id          String   @id @default(cuid())
+  code        String   @unique // cod | bkash | nagad | rocket | card | sslcommerz
+  name        String
+  nameBn      String?
+  description String?
+  icon        String?
+  instructions String?
+  isEnabled   Boolean  @default(true)
+  isSandbox   Boolean  @default(true)
+  fee         Float    @default(0)
+  feeType     String   @default("fixed") // fixed | percent
+  config      String?  // JSON credentials
+  position    Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}
+
+model TaxRate {
+  id        String   @id @default(cuid())
+  name      String
+  country   String   @default("BD")
+  rate      Float    @default(0)
+  inclusive Boolean  @default(true)
+  status    String   @default("active")
+}
+
+// ───────────────────────── ANALYTICS ─────────────────────────
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String?
+  sessionId String?
+  device    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model SearchQuery {
+  id        String   @id @default(cuid())
+  query     String
+  results   Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([query])
+}
+
+model Newsletter {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  status    String   @default("subscribed")
+  createdAt DateTime @default(now())
+}

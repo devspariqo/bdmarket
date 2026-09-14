@@ -1,0 +1,571 @@
+# Deploying BD Market to a Live Server
+
+This guide covers the realistic options for hosting this project, in order of how well they fit.
+
+> Setting up locally first, or want the plain install steps? See **[SETUP.md](./SETUP.md)**.
+
+---
+
+## First: can your shared hosting run this?
+
+**Short answer: probably not, and here is how to check in 60 seconds.**
+
+This project is a **Next.js 14 application with a Node.js server**. It is not PHP. It needs a
+**long-running Node process** — something that stays alive and answers requests continuously.
+
+Classic shared hosting (the $3–5/month cPanel plan with PHP + MySQL) cannot do that. It serves
+static files and PHP scripts only. Uploading this project there will not work, no matter the
+configuration.
+
+### Run these three checks on your host
+
+| # | Check | Where to look | What you need |
+|---|---|---|---|
+| 1 | **Node.js support** | cPanel → "Setup Node.js App", or ask support | Node **18.17+** (20 LTS ideal) |
+| 2 | **SSH access** | cPanel → "Terminal", or your SSH details | Required to run build commands |
+| 3 | **Persistent process** | "Setup Node.js App" or PM2 in SSH | Must survive after you close the browser |
+
+If **all three pass**, go to [Option B](#option-b-shared-hosting-with-nodejs-support).
+
+If **any fail**, use [Option A](#option-a-vercel--recommended) or [Option C](#option-c-cheap-vps--best-for-production).
+
+---
+
+## The installer (`setup.js`)
+
+Wherever you deploy — shared hosting, a VPS, or your own machine — `setup.js` replaces the manual
+database and environment setup with one command. Run it from the project root after `npm ci`:
+
+```bash
+node setup.js --check    # 1. is this server ready? (changes nothing)
+node setup.js            # 2. install
+```
+
+It checks the server, asks which database to use (**MySQL**, SQLite or PostgreSQL), writes `.env`
+with a freshly generated `AUTH_SECRET`, points Prisma at the right provider, creates every table,
+optionally loads the demo catalogue, and creates your first admin account.
+
+Three ways to run it:
+
+| Command | Use it for |
+| --- | --- |
+| `node setup.js` | Normal interactive install — the one you want |
+| `node setup.js --check` | Verify requirements only, imports nothing, changes nothing |
+| `node setup.js --yes` | Unattended install, every prompt takes its default |
+
+Answers can also be piped in, which is useful for provisioning scripts:
+
+```bash
+printf '2\n./prisma/prod.db\nhttps://example.com\nn\n' | node setup.js
+```
+
+The installer is **safe to re-run**. It will notice an existing `.env`, offer to keep the current
+database URL, and carry over any payment-gateway or SMTP credentials you had already filled in.
+
+> `setup.js` is the Node.js installer for this project. A PHP `install.php` would not apply here —
+> the application is a Next.js/Node server, not PHP, so there is no PHP runtime to hook into.
+> The installer does the same job (database, config, tables, admin user) in the language the app
+> actually runs on.
+
+---
+
+## Option A: Vercel (recommended)
+
+Vercel is made by the Next.js team. This project deploys in about 5 minutes with zero server work.
+
+> **One caveat:** Vercel's filesystem is **read-only**. SQLite (`prisma/dev.db`) cannot be written
+> there, and media uploads to `public/uploads` will fail. You must move the database to a hosted
+> Postgres/MySQL first. See [Migrating the database](#migrating-off-sqlite).
+
+### Steps
+
+1. **Push the project to GitHub** (see [Uploading your code](#uploading-your-code)).
+2. Go to **vercel.com** → *Add New Project* → import the repository.
+3. Vercel auto-detects Next.js. Leave build settings at their defaults.
+4. Add **Environment Variables**:
+
+   | Key | Value |
+   |---|---|
+   | `DATABASE_URL` | Your Postgres/MySQL connection string |
+   | `AUTH_SECRET` | A long random string (see below) |
+   | `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` |
+
+5. Click **Deploy**.
+6. **Add your custom domain**: Project → *Settings* → *Domains* → add your domain, then point your
+   domain's DNS to the value Vercel shows you.
+
+Generate a strong `AUTH_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+Also set `binaryTargets` in `prisma/schema.prisma` to include `rhel-openssl-3.0.x` for Vercel.
+
+---
+
+## Option B: Shared hosting with Node.js support
+
+This is the closest thing to "shared hosting that works". Providers that offer this pattern include
+**Hostinger**, **A2 Hosting**, **Namecheap**, **cPanel hosts with Passenger**, and
+**LiteSpeed-based hosts with Node support**. Confirm with their support that Node **18+** and
+**SSH** are included before buying.
+
+### B1. Prepare the project locally (on your PC)
+
+Do this **before** uploading — you cannot reliably compile on shared hosting.
+
+```bash
+cd "C:/Users/WALTON/OneDrive/Documents/BD Woocommerce"
+
+# 1. Make sure the Linux Prisma engines are present (already configured in schema.prisma)
+npx prisma generate
+
+# 2. Build for production
+npm run build
+```
+
+Confirm `prisma/schema.prisma` contains the `binaryTargets` line. It should already:
+
+```prisma
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "linux-musl-openssl-3.0.x"]
+}
+```
+
+### B2. Decide what to upload
+
+**Upload everything EXCEPT `node_modules` and `.next/cache`.** Your host must run `npm install`
+so Prisma fetches the correct Linux engine for its own architecture.
+
+| Upload | Skip |
+|---|---|
+| `app/`, `components/`, `lib/`, `prisma/` | `node_modules/` (reinstall on server) |
+| `public/` | `.next/` (rebuild on server) |
+| `package.json`, `package-lock.json` | `.git/` |
+| `next.config.js`, `tailwind.config.js`, `tsconfig.json`, `postcss.config.js` | `tsconfig.tsbuildinfo` |
+| `middleware.ts` | `prisma/dev.db` (unless you want your demo data) |
+
+> **Note:** `prisma/dev.db` is gitignored but it is your *data*. If you want your seeded catalogue
+> and demo products live, upload it. For a clean store, skip it and the schema will be created empty.
+
+### B3. Configure the app on the server
+
+Over SSH, from your application root:
+
+```bash
+# Install dependencies exactly as locked
+npm ci
+```
+
+**The quick way — use the installer.** It handles the environment file, the database tables, the
+Prisma engine and your first admin account in one pass:
+
+```bash
+node setup.js
+```
+
+It asks which database to use, then for the connection details. On cPanel, open **MySQL
+Databases** in the control panel and copy the host, database name and user straight from there.
+Check the server is ready first with `node setup.js --check` (changes nothing). For an unattended
+run, `node setup.js --yes` accepts every default.
+
+The rest of this section is the manual equivalent — use it if you prefer to configure things by
+hand or the installer does not suit your host.
+
+```bash
+# Create the production environment file
+nano .env
+```
+
+Paste this, then edit the values:
+
+```env
+DATABASE_URL="file:./prod.db"
+
+# REQUIRED: generate a unique secret, never reuse the dev one
+AUTH_SECRET="paste-your-generated-secret-here"
+
+NEXT_PUBLIC_SITE_URL="https://yourdomain.com"
+NEXT_PUBLIC_SITE_NAME="BD Market"
+
+# Optional — payment gateways (start in sandbox)
+BKASH_APP_KEY=""
+BKASH_APP_SECRET=""
+NAGAD_MERCHANT_ID=""
+SSLCOMMERZ_STORE_ID=""
+```
+
+For MySQL, the URL looks like this instead:
+
+```env
+DATABASE_URL="mysql://cpuser:dbpassword@localhost:3306/bdmarket"
+```
+
+Create the database schema, then optionally load demo data:
+
+```bash
+npx prisma db push          # creates prod.db with all tables
+
+# Make the uploads directory writable
+mkdir -p public/uploads && chmod 775 public/uploads
+
+# Only if you want the seeded demo catalogue:
+npx prisma db seed          # or: npx tsx prisma/seed.ts
+```
+
+### B4. Build and start
+
+```bash
+npm run build
+```
+
+Then start it under a process manager so it restarts automatically. **PM2** is the standard choice:
+
+```bash
+npm install -g pm2
+pm2 start npm --name "bd-market" -- start
+pm2 save                     # remember this process list
+pm2 startup                  # prints a command — run it to auto-start on reboot
+```
+
+Verify it is alive:
+
+```bash
+pm2 status
+pm2 logs bd-market --lines 50
+```
+
+### B5. Point the domain at the Node app
+
+Two common setups:
+
+**Via cPanel's "Setup Node.js App":**
+- Application root: your project folder
+- Application startup file: `node_modules/next/dist/bin/next`
+- Application URL: your domain
+- Then click *Run NPM Install* and *Restart*
+
+**Via reverse proxy (if you have root or the host allows it):**
+
+```apache
+# Apache — .htaccess in public_html
+RewriteEngine On
+RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+```
+
+```nginx
+# Nginx
+location / {
+    proxy_pass http://127.0.0.1:3000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+```
+
+Finally enable **free SSL** (Let's Encrypt) from your cPanel — this project sets
+`Secure` cookies, so **HTTPS is mandatory** for admin login to work.
+
+---
+
+## Option C: Cheap VPS (best for production)
+
+If you want SQLite to actually work and full control, a **$5/month VPS** is the honest answer.
+DigitalOcean, Hetzner, Vultr, Contabo and Linode all work.
+
+```bash
+# On a fresh Ubuntu 22.04 server
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs nginx git
+
+# Get your code
+git clone <your-repo-url> /var/www/bd-market
+cd /var/www/bd-market
+npm ci
+npx prisma generate
+npx prisma db push
+npm run build
+
+# Run it forever
+sudo npm install -g pm2
+pm2 start npm --name bd-market -- start
+pm2 startup && pm2 save
+```
+
+Then put Nginx in front (config above) and add HTTPS:
+
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
+
+On a VPS, SQLite is fine for a small-to-medium store — but **back up `prod.db` daily**:
+
+```bash
+# Add to crontab -e — nightly backup, keeps 30 days
+0 3 * * * cp /var/www/bd-market/prisma/prod.db /var/backups/bd-market-$(date +\%F).db
+```
+
+### Optional: slim container/standalone deploy
+
+For Docker or a minimal server you can build a self-contained bundle instead of shipping
+`node_modules`. Add one line to `next.config.js`:
+
+```js
+output: 'standalone',
+```
+
+Then:
+
+```bash
+npm run build
+# Next does NOT copy these automatically — the site breaks without them:
+cp -r public .next/standalone/public
+cp -r .next/static .next/standalone/.next/static
+
+cd .next/standalone
+PORT=3000 HOSTNAME=0.0.0.0 \
+DATABASE_URL="file:/abs/path/to/prisma/prod.db" \
+AUTH_SECRET="..." \
+node server.js
+```
+
+Verified on this project: all routes return 200, CSS loads, and uploaded media serves correctly
+with its security guards intact.
+
+Two gotchas:
+
+- **If you skip the two `cp` commands, the site loads unstyled with no images.** This is documented
+  Next.js behaviour, not a bug — the standalone bundle contains only `server.js` and `node_modules`.
+- **SQLite paths must be absolute.** Prisma resolves relative SQLite paths against the schema
+  directory, so `file:./prod.db` breaks when the server runs from a different working directory.
+  A relative path produces `EINVAL`/`Unable to open the database file` and every page 500s.
+  Use `file:/absolute/path/to/prod.db` — or just switch to Postgres/MySQL, which is immune to this.
+
+---
+
+## Migrating off SQLite
+
+Required for Vercel; recommended for any serious store. Two steps: switch the schema, then move
+your data. Both are scripted.
+
+### Step 1 — Switch the provider
+
+```bash
+npm run db:use postgres     # or: mysql  |  sqlite (to switch back)
+```
+
+This rewrites `prisma/schema.prisma` and sets the correct `binaryTargets` — including
+`rhel-openssl-3.0.x`, which Vercel requires. It is safe to run repeatedly and to revert.
+
+Then set `DATABASE_URL` in `.env`:
+
+| Provider | Example |
+|---|---|
+| PostgreSQL | `postgresql://user:pass@host:5432/bdmarket?sslmode=require` |
+| MySQL | `mysql://user:pass@host:3306/bdmarket` |
+
+### Step 2 — Create the tables
+
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+### Step 3 — Move your existing data
+
+Your 762 seeded rows (products, orders, customers, settings) can be carried across:
+
+```bash
+# On your current database
+node scripts/db-transfer.js export backup.json
+
+# After switching DATABASE_URL to the new database
+node scripts/db-transfer.js import backup.json
+```
+
+The export writes every table to one JSON file. The import preserves record ids and inserts in
+dependency order, so foreign keys stay valid; category parent links are re-linked in a second pass.
+Verified end-to-end on this project: **762/762 rows, all 25 tables**, with products, orders and
+settings queryable afterwards.
+
+> Run `npx prisma db push` against the **target** database before importing, so the tables exist.
+
+### Step 4 — Rebuild
+
+```bash
+npm run build
+```
+
+Clean up `backup.json` afterwards — it contains customer emails and order data.
+
+### Alternative: skip the data
+
+For a fresh store you can simply seed it instead:
+
+```bash
+npm run db:use postgres
+npx prisma db push
+npm run db:seed
+```
+
+### Full workflow summary
+
+```bash
+# Move local SQLite → production Postgres
+node scripts/db-transfer.js export backup.json
+npm run db:use postgres
+# edit .env → DATABASE_URL="postgresql://..."
+npx prisma generate
+npx prisma db push
+node scripts/db-transfer.js import backup.json
+npm run build
+```
+
+> **Do not introduce Prisma `enum` types.** The schema deliberately uses plain `String` fields for
+> status/role values so it stays portable across SQLite, PostgreSQL and MySQL. Adding enums would
+> break the ability to develop locally on SQLite. Keep it that way.
+
+---
+
+## Uploading your code
+
+### With Git (recommended)
+
+```bash
+cd "C:/Users/WALTON/OneDrive/Documents/BD Woocommerce"
+git init
+git add .
+git commit -m "BD Market eCommerce platform"
+
+# Create an empty repo on github.com first, then:
+git remote add origin https://github.com/YOURNAME/bd-market.git
+git branch -M main
+git push -u origin main
+```
+
+`.gitignore` already excludes `node_modules/`, `.next/`, `.env` and `prisma/dev.db`, so no secrets
+or build output get committed.
+
+### With FTP / cPanel File Manager
+
+Zip the project **excluding `node_modules` and `.next`** (they contain Windows binaries and
+thousands of files — uploading them wastes hours and will not work on Linux), then upload and
+extract on the server.
+
+---
+
+## Environment variables reference
+
+| Variable | Required | Notes |
+|---|---|---|
+| `DATABASE_URL` | **Yes** | `file:./prod.db` for SQLite, or a Postgres/MySQL URL |
+| `AUTH_SECRET` | **Yes** | Signs admin + customer sessions. Must be unique and secret |
+| `NEXT_PUBLIC_SITE_URL` | **Yes** | Full URL with `https://`. Used for canonical tags and sitemap |
+| `NEXT_PUBLIC_SITE_NAME` | No | Display name |
+| `BKASH_*`, `NAGAD_*`, `SSLCOMMERZ_*` | No | Leave blank to disable that gateway; start in sandbox |
+| `SMTP_*` | No | Order confirmation emails |
+| `SMS_API_KEY`, `SMS_SENDER_ID` | No | BD SMS notifications |
+
+> Variables starting with `NEXT_PUBLIC_` are baked in **at build time**. If you change one, you must
+> rebuild (`npm run build`) — restarting alone is not enough.
+
+---
+
+## Go-live checklist
+
+**Security**
+- [ ] `AUTH_SECRET` is a fresh random value, **not** the dev default
+- [ ] HTTPS enabled — the session cookie is `Secure`, so login fails on plain HTTP
+- [ ] Demo accounts changed or deleted (`admin@bdmarket.com.bd` / `admin123`)
+- [ ] `.env` is not publicly accessible or committed to Git
+- [ ] Payment gateways still in **sandbox** until you have live credentials
+
+**Configuration**
+- [ ] `NEXT_PUBLIC_SITE_URL` matches your real domain
+- [ ] Admin → Settings → General: site name, email, phone, address updated
+- [ ] Admin → Settings → Store: currency, weight unit, order prefix
+- [ ] Admin → Settings → SEO: meta title/description, and the sitemap URL field
+- [ ] Shipping zones and rates set for Dhaka vs. outside Dhaka
+- [ ] Payment methods enabled with real credentials
+
+**Verification**
+- [ ] Homepage loads on your domain
+- [ ] Register a test customer, add to cart, place a COD order
+- [ ] The order appears in Admin → Orders
+- [ ] **Upload an image in Admin → Media, then confirm it displays** (this is the upload-path test)
+- [ ] Order tracking works at `/pages/track-order`
+- [ ] `https://yourdomain.com/sitemap.xml` returns XML
+- [ ] `https://yourdomain.com/robots.txt` returns text
+- [ ] Submit the sitemap in Google Search Console
+- [ ] Test on a real phone — the design is responsive, confirm it
+
+---
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| **"Query engine library not found"** | Windows-built Prisma on Linux | `binaryTargets` in schema (already set), then `npx prisma generate` and `npm run build` on the server |
+| **Uploaded images 404** | Next snapshots `public/` at boot | Already fixed — uploads are served by `app/uploads/[...path]/route.ts`. If you removed that file, restore it |
+| **`EACCES` / can't write `prod.db`** | File permissions | `chmod 664 prisma/prod.db && chmod 775 prisma` |
+| **`EACCES` on upload** | `public/uploads` not writable | `mkdir -p public/uploads && chmod 775 public/uploads` |
+| **Every page 500s, log says `Unable to open the database file`** | Relative SQLite path resolved against the wrong directory | Use an absolute `DATABASE_URL`: `file:/var/www/bd-market/prisma/prod.db` |
+| **502 Bad Gateway** | Node process died | `pm2 logs` — usually a missing env var or DB error |
+| **Login silently fails, page reloads** | Cookie rejected over HTTP | Enable HTTPS. The `Secure` flag blocks cookies on plain HTTP |
+| **Admin pages redirect in a loop** | Missing middleware | Ensure `middleware.ts` is uploaded at the project root |
+| **Changes not showing** | Build cached | `rm -rf .next && npm run build`, then restart |
+| **`EINVAL readlink` during build** | OneDrive/Dropbox sync interference | Build on the server, or move the project out of OneDrive first |
+| **Out of memory during build** | Shared hosts are RAM-limited | Build locally and upload `.next`, or upgrade the plan |
+
+---
+
+## Media uploads and file storage
+
+Uploaded images go to **`public/uploads/`** on disk, and are served by the route handler at
+`app/uploads/[...path]/route.ts`.
+
+**Why the route handler is necessary:** Next.js takes a snapshot of `public/` when the production
+server boots. A file written to `public/uploads/` *after* startup is **not** served by the static
+handler — it returns 404. Since the admin media uploader writes files at runtime, serving them
+through a route handler is what makes uploads work in production. Do not delete
+`app/uploads/[...path]/route.ts`.
+
+The handler also enforces:
+- an allow-list of image/document extensions (returns 415 otherwise)
+- path-traversal protection (returns 400)
+- `Cache-Control: immutable` for long-lived caching
+- a restrictive `Content-Security-Policy` on SVG files so uploaded SVGs cannot execute scripts
+
+### On hosts with ephemeral or read-only disks
+
+Vercel, Netlify and most serverless platforms cannot persist files written to disk. Uploads will
+appear to succeed and then vanish. For those hosts, switch the multipart branch in
+`app/api/admin/media/route.ts` to object storage (Cloudinary, S3, Cloudflare R2, Supabase Storage)
+and return the resulting absolute URL in place of `/uploads/<filename>`.
+
+The free-form **"Add image by URL"** path in the media library already accepts remote URLs and works
+unchanged on any host — it is the simplest workaround if you deploy serverless and do not want to
+wire up a bucket immediately.
+
+Ensure the directory exists and is writable before first use:
+
+```bash
+mkdir -p public/uploads
+chmod 775 public/uploads
+```
+
+---
+
+## Which option should you pick?
+
+| Your situation | Choose |
+|---|---|
+| Fastest, free to start, no server admin | **Option A — Vercel** (+ hosted Postgres) |
+| Already paying for shared hosting with Node + SSH | **Option B** |
+| Want SQLite, uploads and full control to just work | **Option C — $5 VPS** |
+| Classic PHP-only shared hosting | **Not possible** — upgrade or switch |
