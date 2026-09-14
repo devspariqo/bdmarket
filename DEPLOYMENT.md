@@ -10,20 +10,20 @@ This guide covers the realistic options for hosting this project, in order of ho
 
 **Short answer: probably not, and here is how to check in 60 seconds.**
 
-This project is a **Next.js 14 application with a Node.js server**. It is not PHP. It needs a
+This project is a **Next.js 14 application with a Node.js server**. It is not PHP. It needs a  
 **long-running Node process** — something that stays alive and answers requests continuously.
 
-Classic shared hosting (the $3–5/month cPanel plan with PHP + MySQL) cannot do that. It serves
-static files and PHP scripts only. Uploading this project there will not work, no matter the
+Classic shared hosting (the $3–5/month cPanel plan with PHP + MySQL) cannot do that. It serves  
+static files and PHP scripts only. Uploading this project there will not work, no matter the  
 configuration.
 
 ### Run these three checks on your host
 
-| # | Check | Where to look | What you need |
-|---|---|---|---|
-| 1 | **Node.js support** | cPanel → "Setup Node.js App", or ask support | Node **18.17+** (20 LTS ideal) |
-| 2 | **SSH access** | cPanel → "Terminal", or your SSH details | Required to run build commands |
-| 3 | **Persistent process** | "Setup Node.js App" or PM2 in SSH | Must survive after you close the browser |
+| # | Check                  | Where to look                                | What you need                            |
+| - | ---------------------- | -------------------------------------------- | ---------------------------------------- |
+| 1 | **Node.js support**    | cPanel → "Setup Node.js App", or ask support | Node **18.17+** (20 LTS ideal)           |
+| 2 | **SSH access**         | cPanel → "Terminal", or your SSH details     | Required to run build commands           |
+| 3 | **Persistent process** | "Setup Node.js App" or PM2 in SSH            | Must survive after you close the browser |
 
 If **all three pass**, go to [Option B](#option-b-shared-hosting-with-nodejs-support).
 
@@ -31,9 +31,10 @@ If **any fail**, use [Option A](#option-a-vercel--recommended) or [Option C](#op
 
 ---
 
+
 ## The installer (`setup.js`)
 
-Wherever you deploy — shared hosting, a VPS, or your own machine — `setup.js` replaces the manual
+Wherever you deploy — shared hosting, a VPS, or your own machine — `setup.js` replaces the manual  
 database and environment setup with one command. Run it from the project root after `npm ci`:
 
 ```bash
@@ -41,17 +42,17 @@ node setup.js --check    # 1. is this server ready? (changes nothing)
 node setup.js            # 2. install
 ```
 
-It checks the server, asks which database to use (**MySQL**, SQLite or PostgreSQL), writes `.env`
-with a freshly generated `AUTH_SECRET`, points Prisma at the right provider, creates every table,
+It checks the server, asks which database to use (**MySQL**, SQLite or PostgreSQL), writes `.env`  
+with a freshly generated `AUTH_SECRET`, points Prisma at the right provider, creates every table,  
 optionally loads the demo catalogue, and creates your first admin account.
 
 Three ways to run it:
 
-| Command | Use it for |
-| --- | --- |
-| `node setup.js` | Normal interactive install — the one you want |
+| Command                 | Use it for                                                 |
+| ----------------------- | ---------------------------------------------------------- |
+| `node setup.js`         | Normal interactive install — the one you want              |
 | `node setup.js --check` | Verify requirements only, imports nothing, changes nothing |
-| `node setup.js --yes` | Unattended install, every prompt takes its default |
+| `node setup.js --yes`   | Unattended install, every prompt takes its default         |
 
 Answers can also be piped in, which is useful for provisioning scripts:
 
@@ -59,12 +60,12 @@ Answers can also be piped in, which is useful for provisioning scripts:
 printf '2\n./prisma/prod.db\nhttps://example.com\nn\n' | node setup.js
 ```
 
-The installer is **safe to re-run**. It will notice an existing `.env`, offer to keep the current
+The installer is **safe to re-run**. It will notice an existing `.env`, offer to keep the current  
 database URL, and carry over any payment-gateway or SMTP credentials you had already filled in.
 
-> `setup.js` is the Node.js installer for this project. A PHP `install.php` would not apply here —
-> the application is a Next.js/Node server, not PHP, so there is no PHP runtime to hook into.
-> The installer does the same job (database, config, tables, admin user) in the language the app
+> `setup.js` is the Node.js installer for this project. A PHP `install.php` would not apply here —  
+> the application is a Next.js/Node server, not PHP, so there is no PHP runtime to hook into.  
+> The installer does the same job (database, config, tables, admin user) in the language the app  
 > actually runs on.
 
 ---
@@ -73,8 +74,8 @@ database URL, and carry over any payment-gateway or SMTP credentials you had alr
 
 Vercel is made by the Next.js team. This project deploys in about 5 minutes with zero server work.
 
-> **One caveat:** Vercel's filesystem is **read-only**. SQLite (`prisma/dev.db`) cannot be written
-> there, and media uploads to `public/uploads` will fail. You must move the database to a hosted
+> **One caveat:** Vercel's filesystem is **read-only**. SQLite (`prisma/dev.db`) cannot be written  
+> there, and media uploads to `public/uploads` will fail. You must move the database to a hosted  
 > Postgres/MySQL first. See [Migrating the database](#migrating-off-sqlite).
 
 ### Steps
@@ -83,15 +84,13 @@ Vercel is made by the Next.js team. This project deploys in about 5 minutes with
 2. Go to **vercel.com** → *Add New Project* → import the repository.
 3. Vercel auto-detects Next.js. Leave build settings at their defaults.
 4. Add **Environment Variables**:
-
-   | Key | Value |
-   |---|---|
-   | `DATABASE_URL` | Your Postgres/MySQL connection string |
-   | `AUTH_SECRET` | A long random string (see below) |
-   | `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` |
-
+   | Key                    | Value                                 |
+   | ---------------------- | ------------------------------------- |
+   | `DATABASE_URL`         | Your Postgres/MySQL connection string |
+   | `AUTH_SECRET`          | A long random string (see below)      |
+   | `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com`              |
 5. Click **Deploy**.
-6. **Add your custom domain**: Project → *Settings* → *Domains* → add your domain, then point your
+6. **Add your custom domain**: Project → *Settings* → *Domains* → add your domain, then point your  
    domain's DNS to the value Vercel shows you.
 
 Generate a strong `AUTH_SECRET`:
@@ -106,32 +105,41 @@ Also set `binaryTargets` in `prisma/schema.prisma` to include `rhel-openssl-3.0.
 
 ## Option B: Shared hosting with Node.js support
 
-This is the closest thing to "shared hosting that works". Providers that offer this pattern include
-**Hostinger**, **A2 Hosting**, **Namecheap**, **cPanel hosts with Passenger**, and
-**LiteSpeed-based hosts with Node support**. Confirm with their support that Node **18+** and
+This is the closest thing to "shared hosting that works". Providers that offer this pattern include  
+**Hostinger**, **A2 Hosting**, **Namecheap**, **cPanel hosts with Passenger**, and  
+**LiteSpeed-based hosts with Node support**. Confirm with their support that Node **18+** and  
 **SSH** are included before buying.
+
 
 ### B0. Hostinger Web Apps — the managed flow
 
-Hostinger's **Web Apps** (Websites → Add Website → Node.js web app) builds and runs the app for
+Hostinger's **Web Apps** (Websites → Add Website → Node.js web app) builds and runs the app for  
 you from a connected GitHub repository. Two things about it are easy to get wrong:
 
-**1. SQLite will not work here, even though Hostinger is not serverless.** Builds land in
-`~/domains/{domain}/hbuilds/current/`, and `current` is a symlink to the live build. **Every
-redeploy creates a new build directory**, so a SQLite file inside the app is wiped on each deploy.
+**1. SQLite will not work here, even though Hostinger is not serverless.** Builds land in  
+`~/domains/{domain}/hbuilds/current/`, and `current` is a symlink to the live build. **Every  
+redeploy creates a new build directory**, so a SQLite file inside the app is wiped on each deploy.  
 Use a hosted database.
 
-**2. Use Hostinger's own MySQL.** Hostinger supports **MySQL only** on shared and managed plans —
-PostgreSQL is not available. That makes MySQL the simplest option by a wide margin: the credentials
-are shown plainly in hPanel, there is no connection pooler, no region to match, and no extra
+**2. Use Hostinger's own MySQL.** Hostinger supports **MySQL only** on shared and managed plans —  
+PostgreSQL is not available. That makes MySQL the simplest option by a wide margin: the credentials  
+are shown plainly in hPanel, there is no connection pooler, no region to match, and no extra  
 service to sign up for.
 
-1. In hPanel go to **Websites → Dashboard → Databases → Management**.
-2. Create a database. Hostinger prefixes the names with your account ID, so you end up with
-   something like `u860892017_bdmarket`. Save the password — it is shown only once.
-3. Note the four values: **database name**, **username**, **password** and **host** (normally
-   `localhost`). The database page displays them.
-4. Set the provider and create the tables:
+1. In hPanel go to **Websites → Dashboard → Databases → MySQL Databases**.
+2. Click **Create database**, enter a name, and click **Create**. A database user is created
+   automatically with the same name.
+3. Hostinger prefixes both with your account ID, so you end up with something like
+   `u860892017_bdmarket`. Save the password — it is shown only once.
+4. Note the four values: **database name**, **username**, **password** and **host**.
+
+> ⚠️ **The host must be `127.0.0.1`, not `localhost`.** PHP apps reach MySQL over a local socket,
+> so `localhost` works for them. Node.js connects over TCP and resolves `localhost` to the IPv6
+> loopback `::1`, which the database user is not granted for — the connection is refused with
+> `Access denied for user 'u123456789_admin'@'::1'`. `127.0.0.1` forces IPv4 and works on every
+> account.
+
+5. Set the provider and create the tables:
    ```bash
    node scripts/use-db.js mysql
    npx prisma db push        # creates the tables
@@ -142,30 +150,38 @@ service to sign up for.
 Your `DATABASE_URL` then looks like this — a single line, with the three values you just noted:
 
 ```
-mysql://u860892017_bdmarket:YOUR-PASSWORD@localhost:3306/u860892017_bdmarket
+mysql://u860892017_bdmarket:YOUR-PASSWORD@127.0.0.1:3306/u860892017_bdmarket
 ```
 
-Percent-encode the password if it contains `@ # / : ? &`. Generate the finished string with:
+**Build it with the guided helper** rather than by hand — it percent-encodes the password, enforces
+`127.0.0.1`, tests the connection *before* saving anything, and can write `.env` for you:
+
+```bash
+npm run db:setup
+```
+
+Or non-interactively:
 
 ```bash
 npm run db:check-url -- --build \
-  --host localhost --port 3306 \
+  --host 127.0.0.1 --port 3306 \
   --user u860892017_bdmarket \
   --password 'your-password' \
   --db u860892017_bdmarket
 ```
 
-**If hPanel has no Databases section**, your plan does not include MySQL. In that case connect to
+**If hPanel has no Databases section**, your plan does not include MySQL. In that case connect to  
 an external Postgres instead — see *Using Supabase Postgres* below.
+
 
 ### B0b. Using Supabase Postgres instead
 
-Only needed if MySQL is unavailable. Supabase is an external Postgres provider, so it works on any
-plan — but the setup is fiddlier, because the credentials live in a different dashboard and the
+Only needed if MySQL is unavailable. Supabase is an external Postgres provider, so it works on any  
+plan — but the setup is fiddlier, because the credentials live in a different dashboard and the  
 URL must be assembled correctly.
 
-**Do not use Hostinger's "Connect a database" wizard for this.** It sets `SUPABASE_URL` and
-`SUPABASE_ANON_KEY`, which are Supabase's *client* credentials, not a Postgres connection string —
+**Do not use Hostinger's "Connect a database" wizard for this.** It sets `SUPABASE_URL` and  
+`SUPABASE_ANON_KEY`, which are Supabase's *client* credentials, not a Postgres connection string —  
 Prisma cannot use them.
 
 1. Create a free project at [supabase.com](https://supabase.com). Save the database password.
@@ -182,28 +198,28 @@ Prisma cannot use them.
 postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true
 ```
 
-The pooler host cannot be guessed — the `aws-N` index varies by region, so copy it from the dialog.
-The username differs by mode too: the pooler uses `postgres.<ref>`, the direct connection uses
+The pooler host cannot be guessed — the `aws-N` index varies by region, so copy it from the dialog.  
+The username differs by mode too: the pooler uses `postgres.<ref>`, the direct connection uses  
 `postgres`. Direct connections are IPv6-only on the free plan and will not work from Hostinger.
 
-**Environment variables** live at **hPanel → your website dashboard → Environment variables**.
-They are injected into **both the build and the running app**, and persist across deployments, so
+**Environment variables** live at **hPanel → your website dashboard → Environment variables**.  
+They are injected into **both the build and the running app**, and persist across deployments, so  
 set them once:
 
-| Key | Value |
-| --- | --- |
-| `DATABASE_URL` | the MySQL URL above, or the Supabase URI |
-| `AUTH_SECRET` | a fresh 96-character hex string |
-| `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` |
+| Key                    | Value                                    |
+| ---------------------- | ---------------------------------------- |
+| `DATABASE_URL`         | the MySQL URL above, or the Supabase URI |
+| `AUTH_SECRET`          | a fresh 96-character hex string          |
+| `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com`                 |
 
-Saving the variables **triggers a redeploy**, which is what makes them take effect. `NEXT_PUBLIC_*`
+Saving the variables **triggers a redeploy**, which is what makes them take effect. `NEXT_PUBLIC_*`  
 is baked in at build time, so it must be set *before* the build that needs it.
 
 If the app deploys green but every page 500s, open **`/api/health`** — it names the cause.
 
-**`invalid domain character in database URL`** — Prisma cannot parse `DATABASE_URL`. Verified
-against Prisma's own parser, this specific message means the **host** portion is malformed, which
-in practice is a space, a line break or a quote character that came along with a wrapped paste.
+**`invalid domain character in database URL`** — Prisma cannot parse `DATABASE_URL`. Verified  
+against Prisma's own parser, this specific message means the **host** portion is malformed, which  
+in practice is a space, a line break or a quote character that came along with a wrapped paste.  
 Re-paste the value as one unbroken line with no surrounding quotes. Diagnose it locally with:
 
 ```bash
@@ -212,8 +228,8 @@ npm run db:check-url "postgresql://..."               # checks a specific value
 npm run db:check-url -- --encode "p@ss#w0rd"          # percent-encode a password
 ```
 
-A password containing `@`, `#`, `/` or `:` must be percent-encoded — `@` becomes `%40`, `#`
-becomes `%23`, `/` becomes `%2F`. Note that an unencoded `@` produces a *different* error
+A password containing `@`, `#`, `/` or `:` must be percent-encoded — `@` becomes `%40`, `#`  
+becomes `%23`, `/` becomes `%2F`. Note that an unencoded `@` produces a *different* error  
 (`Can't reach database server`), not this one.
 
 ### B1. Prepare the project locally (on your PC)
@@ -241,19 +257,20 @@ generator client {
 
 ### B2. Decide what to upload
 
-**Upload everything EXCEPT `node_modules` and `.next/cache`.** Your host must run `npm install`
+**Upload everything EXCEPT `node_modules` and `.next/cache`.** Your host must run `npm install`  
 so Prisma fetches the correct Linux engine for its own architecture.
 
-| Upload | Skip |
-|---|---|
-| `app/`, `components/`, `lib/`, `prisma/` | `node_modules/` (reinstall on server) |
-| `public/` | `.next/` (rebuild on server) |
-| `package.json`, `package-lock.json` | `.git/` |
-| `next.config.js`, `tailwind.config.js`, `tsconfig.json`, `postcss.config.js` | `tsconfig.tsbuildinfo` |
-| `middleware.ts` | `prisma/dev.db` (unless you want your demo data) |
+| Upload                                                                       | Skip                                             |
+| ---------------------------------------------------------------------------- | ------------------------------------------------ |
+| `app/`, `components/`, `lib/`, `prisma/`                                     | `node_modules/` (reinstall on server)            |
+| `public/`                                                                    | `.next/` (rebuild on server)                     |
+| `package.json`, `package-lock.json`                                          | `.git/`                                          |
+| `next.config.js`, `tailwind.config.js`, `tsconfig.json`, `postcss.config.js` | `tsconfig.tsbuildinfo`                           |
+| `middleware.ts`                                                              | `prisma/dev.db` (unless you want your demo data) |
 
-> **Note:** `prisma/dev.db` is gitignored but it is your *data*. If you want your seeded catalogue
+> **Note:** `prisma/dev.db` is gitignored but it is your *data*. If you want your seeded catalogue  
 > and demo products live, upload it. For a clean store, skip it and the schema will be created empty.
+
 
 ### B3. Configure the app on the server
 
@@ -264,19 +281,19 @@ Over SSH, from your application root:
 npm ci
 ```
 
-**The quick way — use the installer.** It handles the environment file, the database tables, the
+**The quick way — use the installer.** It handles the environment file, the database tables, the  
 Prisma engine and your first admin account in one pass:
 
 ```bash
 node setup.js
 ```
 
-It asks which database to use, then for the connection details. On cPanel, open **MySQL
-Databases** in the control panel and copy the host, database name and user straight from there.
-Check the server is ready first with `node setup.js --check` (changes nothing). For an unattended
+It asks which database to use, then for the connection details. On cPanel, open **MySQL  
+Databases** in the control panel and copy the host, database name and user straight from there.  
+Check the server is ready first with `node setup.js --check` (changes nothing). For an unattended  
 run, `node setup.js --yes` accepts every default.
 
-The rest of this section is the manual equivalent — use it if you prefer to configure things by
+The rest of this section is the manual equivalent — use it if you prefer to configure things by  
 hand or the installer does not suit your host.
 
 ```bash
@@ -295,12 +312,12 @@ AUTH_SECRET="paste-your-generated-secret-here"
 NEXT_PUBLIC_SITE_URL="https://yourdomain.com"
 ```
 
-These three are the only variables the app reads. `NEXT_PUBLIC_SITE_NAME` is not
+These three are the only variables the app reads. `NEXT_PUBLIC_SITE_NAME` is not  
 used — the display name comes from **Admin → Settings → General**.
 
-**Payment gateway credentials are not environment variables.** bKash, Nagad,
-Rocket and SSLCommerz are configured in the database at **Admin → Settings →
-Payments**, where each gateway also has a sandbox / live toggle. Enter the live
+**Payment gateway credentials are not environment variables.** bKash, Nagad,  
+Rocket and SSLCommerz are configured in the database at **Admin → Settings →  
+Payments**, where each gateway also has a sandbox / live toggle. Enter the live  
 keys there once the site is up; do not put them in `.env`.
 
 For MySQL, the URL looks like this instead:
@@ -308,6 +325,10 @@ For MySQL, the URL looks like this instead:
 ```env
 DATABASE_URL="mysql://cpuser:dbpassword@localhost:3306/bdmarket"
 ```
+
+Use `127.0.0.1` in place of `localhost` on any host where the app is a **Node.js** process —
+including Hostinger and most cPanel hosts. Node resolves `localhost` to the IPv6 loopback `::1`,
+which the database user is usually not granted for. See the B0 section above.
 
 Create the database schema, then optionally load demo data:
 
@@ -348,6 +369,7 @@ pm2 logs bd-market --lines 50
 Two common setups:
 
 **Via cPanel's "Setup Node.js App":**
+
 - Application root: your project folder
 - Application startup file: `node_modules/next/dist/bin/next`
 - Application URL: your domain
@@ -373,14 +395,14 @@ location / {
 }
 ```
 
-Finally enable **free SSL** (Let's Encrypt) from your cPanel — this project sets
+Finally enable **free SSL** (Let's Encrypt) from your cPanel — this project sets  
 `Secure` cookies, so **HTTPS is mandatory** for admin login to work.
 
 ---
 
 ## Option C: Cheap VPS (best for production)
 
-If you want SQLite to actually work and full control, a **$5/month VPS** is the honest answer.
+If you want SQLite to actually work and full control, a **$5/month VPS** is the honest answer.  
 DigitalOcean, Hetzner, Vultr, Contabo and Linode all work.
 
 ```bash
@@ -416,9 +438,10 @@ On a VPS, SQLite is fine for a small-to-medium store — but **back up `prod.db`
 0 3 * * * cp /var/www/bd-market/prisma/prod.db /var/backups/bd-market-$(date +\%F).db
 ```
 
+
 ### Optional: slim container/standalone deploy
 
-For Docker or a minimal server you can build a self-contained bundle instead of shipping
+For Docker or a minimal server you can build a self-contained bundle instead of shipping  
 `node_modules`. Add one line to `next.config.js`:
 
 ```js
@@ -440,23 +463,23 @@ AUTH_SECRET="..." \
 node server.js
 ```
 
-Verified on this project: all routes return 200, CSS loads, and uploaded media serves correctly
+Verified on this project: all routes return 200, CSS loads, and uploaded media serves correctly  
 with its security guards intact.
 
 Two gotchas:
 
-- **If you skip the two `cp` commands, the site loads unstyled with no images.** This is documented
+- **If you skip the two `cp` commands, the site loads unstyled with no images.** This is documented  
   Next.js behaviour, not a bug — the standalone bundle contains only `server.js` and `node_modules`.
-- **SQLite paths must be absolute.** Prisma resolves relative SQLite paths against the schema
-  directory, so `file:./prod.db` breaks when the server runs from a different working directory.
-  A relative path produces `EINVAL`/`Unable to open the database file` and every page 500s.
+- **SQLite paths must be absolute.** Prisma resolves relative SQLite paths against the schema  
+  directory, so `file:./prod.db` breaks when the server runs from a different working directory.  
+  A relative path produces `EINVAL`/`Unable to open the database file` and every page 500s.  
   Use `file:/absolute/path/to/prod.db` — or just switch to Postgres/MySQL, which is immune to this.
 
 ---
 
 ## Migrating off SQLite
 
-Required for Vercel; recommended for any serious store. Two steps: switch the schema, then move
+Required for Vercel; recommended for any serious store. Two steps: switch the schema, then move  
 your data. Both are scripted.
 
 ### Step 1 — Switch the provider
@@ -465,15 +488,15 @@ your data. Both are scripted.
 npm run db:use postgres     # or: mysql  |  sqlite (to switch back)
 ```
 
-This rewrites `prisma/schema.prisma` and sets the correct `binaryTargets` — including
+This rewrites `prisma/schema.prisma` and sets the correct `binaryTargets` — including  
 `rhel-openssl-3.0.x`, which Vercel requires. It is safe to run repeatedly and to revert.
 
 Then set `DATABASE_URL` in `.env`:
 
-| Provider | Example |
-|---|---|
+| Provider   | Example                                                     |
+| ---------- | ----------------------------------------------------------- |
 | PostgreSQL | `postgresql://user:pass@host:5432/bdmarket?sslmode=require` |
-| MySQL | `mysql://user:pass@host:3306/bdmarket` |
+| MySQL      | `mysql://user:pass@host:3306/bdmarket`                      |
 
 ### Step 2 — Create the tables
 
@@ -494,9 +517,9 @@ node scripts/db-transfer.js export backup.json
 node scripts/db-transfer.js import backup.json
 ```
 
-The export writes every table to one JSON file. The import preserves record ids and inserts in
-dependency order, so foreign keys stay valid; category parent links are re-linked in a second pass.
-Verified end-to-end on this project: **762/762 rows, all 25 tables**, with products, orders and
+The export writes every table to one JSON file. The import preserves record ids and inserts in  
+dependency order, so foreign keys stay valid; category parent links are re-linked in a second pass.  
+Verified end-to-end on this project: **762/762 rows, all 25 tables**, with products, orders and  
 settings queryable afterwards.
 
 > Run `npx prisma db push` against the **target** database before importing, so the tables exist.
@@ -532,8 +555,8 @@ node scripts/db-transfer.js import backup.json
 npm run build
 ```
 
-> **Do not introduce Prisma `enum` types.** The schema deliberately uses plain `String` fields for
-> status/role values so it stays portable across SQLite, PostgreSQL and MySQL. Adding enums would
+> **Do not introduce Prisma `enum` types.** The schema deliberately uses plain `String` fields for  
+> status/role values so it stays portable across SQLite, PostgreSQL and MySQL. Adding enums would  
 > break the ability to develop locally on SQLite. Keep it that way.
 
 ---
@@ -554,37 +577,39 @@ git branch -M main
 git push -u origin main
 ```
 
-`.gitignore` already excludes `node_modules/`, `.next/`, `.env` and `prisma/dev.db`, so no secrets
+`.gitignore` already excludes `node_modules/`, `.next/`, `.env` and `prisma/dev.db`, so no secrets  
 or build output get committed.
 
 ### With FTP / cPanel File Manager
 
-Zip the project **excluding `node_modules` and `.next`** (they contain Windows binaries and
-thousands of files — uploading them wastes hours and will not work on Linux), then upload and
+Zip the project **excluding `node_modules` and `.next`** (they contain Windows binaries and  
+thousands of files — uploading them wastes hours and will not work on Linux), then upload and  
 extract on the server.
 
 ---
 
 ## Environment variables reference
 
-| Variable | Required | Notes |
-|---|---|---|
-| `DATABASE_URL` | **Yes** | `file:./prod.db` for SQLite, or a Postgres/MySQL URL |
-| `AUTH_SECRET` | **Yes** | Signs admin + customer sessions. Must be unique and secret |
-| `NEXT_PUBLIC_SITE_URL` | **Yes** | Full URL with `https://`. Used for canonical tags and sitemap |
-| `NEXT_PUBLIC_SITE_NAME` | No | Display name |
-| `BKASH_*`, `NAGAD_*`, `SSLCOMMERZ_*` | No | Leave blank to disable that gateway; start in sandbox |
-| `SMTP_*` | No | Order confirmation emails |
-| `SMS_API_KEY`, `SMS_SENDER_ID` | No | BD SMS notifications |
+| Variable                             | Required | Notes                                                         |
+| ------------------------------------ | -------- | ------------------------------------------------------------- |
+| `DATABASE_URL`                       | **Yes**  | `file:./prod.db` for SQLite, or a Postgres/MySQL URL          |
+| `AUTH_SECRET`                        | **Yes**  | Signs admin + customer sessions. Must be unique and secret    |
+| `NEXT_PUBLIC_SITE_URL`               | **Yes**  | Full URL with `https://`. Used for canonical tags and sitemap |
+| `NEXT_PUBLIC_SITE_NAME`              | No       | Display name                                                  |
+| `BKASH_*`, `NAGAD_*`, `SSLCOMMERZ_*` | No       | Leave blank to disable that gateway; start in sandbox         |
+| `SMTP_*`                             | No       | Order confirmation emails                                     |
+| `SMS_API_KEY`, `SMS_SENDER_ID`       | No       | BD SMS notifications                                          |
 
-> Variables starting with `NEXT_PUBLIC_` are baked in **at build time**. If you change one, you must
+> Variables starting with `NEXT_PUBLIC_` are baked in **at build time**. If you change one, you must  
 > rebuild (`npm run build`) — restarting alone is not enough.
 
 ---
 
+
 ## Go-live checklist
 
 **Security**
+
 - [ ] `AUTH_SECRET` is a fresh random value, **not** the dev default
 - [ ] HTTPS enabled — the session cookie is `Secure`, so login fails on plain HTTP
 - [ ] Demo accounts changed or deleted (`admin@bdmarket.com.bd` / `admin123`)
@@ -592,6 +617,7 @@ extract on the server.
 - [ ] Payment gateways still in **sandbox** until you have live credentials
 
 **Configuration**
+
 - [ ] `NEXT_PUBLIC_SITE_URL` matches your real domain
 - [ ] Admin → Settings → General: site name, email, phone, address updated
 - [ ] Admin → Settings → Store: currency, weight unit, order prefix
@@ -600,6 +626,7 @@ extract on the server.
 - [ ] Payment methods enabled with real credentials
 
 **Verification**
+
 - [ ] Homepage loads on your domain
 - [ ] Register a test customer, add to cart, place a COD order
 - [ ] The order appears in Admin → Orders
@@ -612,36 +639,38 @@ extract on the server.
 
 ---
 
+
 ## Troubleshooting
 
-| Symptom | Cause | Fix |
-|---|---|---|
-| **"Query engine library not found"** | Windows-built Prisma on Linux | `binaryTargets` in schema (already set), then `npx prisma generate` and `npm run build` on the server |
-| **Uploaded images 404** | Next snapshots `public/` at boot | Already fixed — uploads are served by `app/uploads/[...path]/route.ts`. If you removed that file, restore it |
-| **`EACCES` / can't write `prod.db`** | File permissions | `chmod 664 prisma/prod.db && chmod 775 prisma` |
-| **`EACCES` on upload** | `public/uploads` not writable | `mkdir -p public/uploads && chmod 775 public/uploads` |
-| **Every page 500s, log says `Unable to open the database file`** | Relative SQLite path resolved against the wrong directory | Use an absolute `DATABASE_URL`: `file:/var/www/bd-market/prisma/prod.db` |
-| **502 Bad Gateway** | Node process died | `pm2 logs` — usually a missing env var or DB error |
-| **Login silently fails, page reloads** | Cookie rejected over HTTP | Enable HTTPS. The `Secure` flag blocks cookies on plain HTTP |
-| **Admin pages redirect in a loop** | Missing middleware | Ensure `middleware.ts` is uploaded at the project root |
-| **Changes not showing** | Build cached | `rm -rf .next && npm run build`, then restart |
-| **`EINVAL readlink` during build** | OneDrive/Dropbox sync interference | Build on the server, or move the project out of OneDrive first |
-| **Out of memory during build** | Shared hosts are RAM-limited | Build locally and upload `.next`, or upgrade the plan |
+| Symptom                                                          | Cause                                                     | Fix                                                                                                          |
+| ---------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **"Query engine library not found"**                             | Windows-built Prisma on Linux                             | `binaryTargets` in schema (already set), then `npx prisma generate` and `npm run build` on the server        |
+| **Uploaded images 404**                                          | Next snapshots `public/` at boot                          | Already fixed — uploads are served by `app/uploads/[...path]/route.ts`. If you removed that file, restore it |
+| **`EACCES` / can't write `prod.db`**                             | File permissions                                          | `chmod 664 prisma/prod.db && chmod 775 prisma`                                                               |
+| **`EACCES` on upload**                                           | `public/uploads` not writable                             | `mkdir -p public/uploads && chmod 775 public/uploads`                                                        |
+| **Every page 500s, log says `Unable to open the database file`** | Relative SQLite path resolved against the wrong directory | Use an absolute `DATABASE_URL`: `file:/var/www/bd-market/prisma/prod.db`                                     |
+| **502 Bad Gateway**                                              | Node process died                                         | `pm2 logs` — usually a missing env var or DB error                                                           |
+| **Login silently fails, page reloads**                           | Cookie rejected over HTTP                                 | Enable HTTPS. The `Secure` flag blocks cookies on plain HTTP                                                 |
+| **Admin pages redirect in a loop**                               | Missing middleware                                        | Ensure `middleware.ts` is uploaded at the project root                                                       |
+| **Changes not showing**                                          | Build cached                                              | `rm -rf .next && npm run build`, then restart                                                                |
+| **`EINVAL readlink` during build**                               | OneDrive/Dropbox sync interference                        | Build on the server, or move the project out of OneDrive first                                               |
+| **Out of memory during build**                                   | Shared hosts are RAM-limited                              | Build locally and upload `.next`, or upgrade the plan                                                        |
 
 ---
 
 ## Media uploads and file storage
 
-Uploaded images go to **`public/uploads/`** on disk, and are served by the route handler at
+Uploaded images go to **`public/uploads/`** on disk, and are served by the route handler at  
 `app/uploads/[...path]/route.ts`.
 
-**Why the route handler is necessary:** Next.js takes a snapshot of `public/` when the production
-server boots. A file written to `public/uploads/` *after* startup is **not** served by the static
-handler — it returns 404. Since the admin media uploader writes files at runtime, serving them
-through a route handler is what makes uploads work in production. Do not delete
+**Why the route handler is necessary:** Next.js takes a snapshot of `public/` when the production  
+server boots. A file written to `public/uploads/` *after* startup is **not** served by the static  
+handler — it returns 404. Since the admin media uploader writes files at runtime, serving them  
+through a route handler is what makes uploads work in production. Do not delete  
 `app/uploads/[...path]/route.ts`.
 
 The handler also enforces:
+
 - an allow-list of image/document extensions (returns 415 otherwise)
 - path-traversal protection (returns 400)
 - `Cache-Control: immutable` for long-lived caching
@@ -649,13 +678,13 @@ The handler also enforces:
 
 ### On hosts with ephemeral or read-only disks
 
-Vercel, Netlify and most serverless platforms cannot persist files written to disk. Uploads will
-appear to succeed and then vanish. For those hosts, switch the multipart branch in
-`app/api/admin/media/route.ts` to object storage (Cloudinary, S3, Cloudflare R2, Supabase Storage)
+Vercel, Netlify and most serverless platforms cannot persist files written to disk. Uploads will  
+appear to succeed and then vanish. For those hosts, switch the multipart branch in  
+`app/api/admin/media/route.ts` to object storage (Cloudinary, S3, Cloudflare R2, Supabase Storage)  
 and return the resulting absolute URL in place of `/uploads/<filename>`.
 
-The free-form **"Add image by URL"** path in the media library already accepts remote URLs and works
-unchanged on any host — it is the simplest workaround if you deploy serverless and do not want to
+The free-form **"Add image by URL"** path in the media library already accepts remote URLs and works  
+unchanged on any host — it is the simplest workaround if you deploy serverless and do not want to  
 wire up a bucket immediately.
 
 Ensure the directory exists and is writable before first use:
@@ -669,9 +698,9 @@ chmod 775 public/uploads
 
 ## Which option should you pick?
 
-| Your situation | Choose |
-|---|---|
-| Fastest, free to start, no server admin | **Option A — Vercel** (+ hosted Postgres) |
-| Already paying for shared hosting with Node + SSH | **Option B** |
-| Want SQLite, uploads and full control to just work | **Option C — $5 VPS** |
-| Classic PHP-only shared hosting | **Not possible** — upgrade or switch |
+| Your situation                                     | Choose                                    |
+| -------------------------------------------------- | ----------------------------------------- |
+| Fastest, free to start, no server admin            | **Option A — Vercel** (+ hosted Postgres) |
+| Already paying for shared hosting with Node + SSH  | **Option B**                              |
+| Want SQLite, uploads and full control to just work | **Option C — $5 VPS**                     |
+| Classic PHP-only shared hosting                    | **Not possible** — upgrade or switch      |
