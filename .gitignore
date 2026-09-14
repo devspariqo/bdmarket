@@ -34,3 +34,8 @@ next-env.d.ts
 bd-market-upload.zip
 *-upload.zip
 .upload-staging/
+
+# AI assistant workspace notes — internal working notes, not project source.
+# These contain the demo admin credentials and infrastructure detail, so they
+# stay on the developer's machine and never reach a public repo.
+.workbuddy-ai/
