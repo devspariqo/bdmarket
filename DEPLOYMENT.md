@@ -121,25 +121,70 @@ you from a connected GitHub repository. Two things about it are easy to get wron
 redeploy creates a new build directory**, so a SQLite file inside the app is wiped on each deploy.
 Use a hosted database.
 
-**2. The "Connect a database" wizard offers Supabase and MongoDB Atlas** — and it sets
-`SUPABASE_URL` / `SUPABASE_ANON_KEY`, which are Supabase's *client* credentials, **not** a Postgres
-connection string. Prisma cannot use those. Instead:
+**2. Use Hostinger's own MySQL.** Hostinger supports **MySQL only** on shared and managed plans —
+PostgreSQL is not available. That makes MySQL the simplest option by a wide margin: the credentials
+are shown plainly in hPanel, there is no connection pooler, no region to match, and no extra
+service to sign up for.
 
-1. Create a free project at [supabase.com](https://supabase.com).
-2. In Supabase, open **Project Settings → Database → Connection string → URI** and copy the
-   Postgres URL. It looks like:
+1. In hPanel go to **Websites → Dashboard → Databases → Management**.
+2. Create a database. Hostinger prefixes the names with your account ID, so you end up with
+   something like `u860892017_bdmarket`. Save the password — it is shown only once.
+3. Note the four values: **database name**, **username**, **password** and **host** (normally
+   `localhost`). The database page displays them.
+4. Set the provider and create the tables:
+   ```bash
+   node scripts/use-db.js mysql
+   npx prisma db push        # creates the tables
+   npm run db:seed           # optional demo catalogue
    ```
-   postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true
-   ```
-   Prefer the **pooler** host on port `6543` — the direct connection is limited to a small number
-   of clients and will exhaust connections under load.
-3. Set the provider to match, and push the schema:
+5. Commit the schema change and push — Hostinger rebuilds automatically.
+
+Your `DATABASE_URL` then looks like this — a single line, with the three values you just noted:
+
+```
+mysql://u860892017_bdmarket:YOUR-PASSWORD@localhost:3306/u860892017_bdmarket
+```
+
+Percent-encode the password if it contains `@ # / : ? &`. Generate the finished string with:
+
+```bash
+npm run db:check-url -- --build \
+  --host localhost --port 3306 \
+  --user u860892017_bdmarket \
+  --password 'your-password' \
+  --db u860892017_bdmarket
+```
+
+**If hPanel has no Databases section**, your plan does not include MySQL. In that case connect to
+an external Postgres instead — see *Using Supabase Postgres* below.
+
+### B0b. Using Supabase Postgres instead
+
+Only needed if MySQL is unavailable. Supabase is an external Postgres provider, so it works on any
+plan — but the setup is fiddlier, because the credentials live in a different dashboard and the
+URL must be assembled correctly.
+
+**Do not use Hostinger's "Connect a database" wizard for this.** It sets `SUPABASE_URL` and
+`SUPABASE_ANON_KEY`, which are Supabase's *client* credentials, not a Postgres connection string —
+Prisma cannot use them.
+
+1. Create a free project at [supabase.com](https://supabase.com). Save the database password.
+2. In the project, click **Connect** at the top of the page.
+3. Choose **Transaction pooler** and copy the string.
+4. Replace `[YOUR-PASSWORD]` — including the brackets — with your real password, percent-encoded.
+5. Append `?pgbouncer=true`, then set the provider:
    ```bash
    node scripts/use-db.js postgres
-   npx prisma db push
-   npm run db:seed          # optional demo catalogue
+   npx prisma db push        # run this with the SESSION pooler URL (port 5432)
    ```
-4. Commit the schema change and push — Hostinger rebuilds automatically.
+
+```
+postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres?pgbouncer=true
+```
+
+The pooler host cannot be guessed — the `aws-N` index varies by region, so copy it from the dialog.
+The username differs by mode too: the pooler uses `postgres.<ref>`, the direct connection uses
+`postgres`. Direct connections are IPv6-only on the free plan and will not work from Hostinger.
 
 **Environment variables** live at **hPanel → your website dashboard → Environment variables**.
 They are injected into **both the build and the running app**, and persist across deployments, so
@@ -147,7 +192,7 @@ set them once:
 
 | Key | Value |
 | --- | --- |
-| `DATABASE_URL` | the Supabase Postgres URI from step 2 |
+| `DATABASE_URL` | the MySQL URL above, or the Supabase URI |
 | `AUTH_SECRET` | a fresh 96-character hex string |
 | `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` |
 
