@@ -188,14 +188,15 @@ DATABASE_URL="file:./prod.db"
 AUTH_SECRET="paste-your-generated-secret-here"
 
 NEXT_PUBLIC_SITE_URL="https://yourdomain.com"
-NEXT_PUBLIC_SITE_NAME="BD Market"
-
-# Optional — payment gateways (start in sandbox)
-BKASH_APP_KEY=""
-BKASH_APP_SECRET=""
-NAGAD_MERCHANT_ID=""
-SSLCOMMERZ_STORE_ID=""
 ```
+
+These three are the only variables the app reads. `NEXT_PUBLIC_SITE_NAME` is not
+used — the display name comes from **Admin → Settings → General**.
+
+**Payment gateway credentials are not environment variables.** bKash, Nagad,
+Rocket and SSLCommerz are configured in the database at **Admin → Settings →
+Payments**, where each gateway also has a sandbox / live toggle. Enter the live
+keys there once the site is up; do not put them in `.env`.
 
 For MySQL, the URL looks like this instead:
 

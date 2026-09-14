@@ -135,20 +135,28 @@ middleware.ts         forwards the pathname header, sets security headers
 ```env
 DATABASE_URL="file:./dev.db"
 AUTH_SECRET="change-this-to-a-long-random-string"
-
 NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-
-# Payment gateways — sandbox credentials
-BKASH_APP_KEY=""
-BKASH_APP_SECRET=""
-NAGAD_MERCHANT_ID=""
-NAGAD_MERCHANT_KEY=""
-SSLCOMMERZ_STORE_ID=""
-SSLCOMMERZ_STORE_PASSWORD=""
 ```
 
+Those three are the only variables the app reads. `AUTH_SECRET` signs the session
+cookies — generate it with:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+If it is left unset, the app falls back to a development secret that is published
+in this repository, which would allow an admin session to be forged. Always set it
+in production.
+
+**Payment gateway credentials do not go in `.env`.** bKash, Nagad, Rocket,
+SSLCommerz and COD are configured in the database, at **Admin → Settings →
+Payments**, where each gateway also has a sandbox / live toggle.
+
 Most store settings are stored in the database and editable from **Admin → Settings**, so you do not need
-to restart the app after changing them.
+to restart the app after changing them. `.env.example` lists the remaining variables;
+those are reserved placeholders for integrations that are not yet wired to the
+environment, so setting them currently has no effect.
 
 ---
 
