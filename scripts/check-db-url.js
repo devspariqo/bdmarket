@@ -135,7 +135,23 @@ if (!scheme) {
   });
 }
 
-// 8. Let the platform parser have a go, and surface its verdict.
+// 8. Transaction-pooler URLs need ?pgbouncer=true for Prisma. Transaction mode
+//    does not support prepared statements, and without the flag Prisma keeps
+//    using them and fails at query time with a confusing protocol error.
+if (/pooler\.supabase\.com:6543|:6543\//.test(raw) && !/pgbouncer=true/i.test(raw)) {
+  problems.push({
+    what: 'Port 6543 (transaction pooler) without ?pgbouncer=true',
+    fix:
+      'Append ?pgbouncer=true to the URL. Transaction mode does not support prepared ' +
+      'statements, and Prisma needs that flag to stop using them.',
+  });
+}
+
+// 9. Warn about the mode that will not work for schema pushes, without treating
+//    it as an error — it is the correct choice for the running app.
+const isTransactionPooler = /pooler\.supabase\.com:6543/.test(raw);
+
+// 10. Let the platform parser have a go, and surface its verdict.
 let parsed = null;
 try {
   parsed = new URL(raw);
@@ -167,6 +183,12 @@ if (!problems.length) {
   console.log('  No problems found — the string parses as a valid URL.');
   console.log('  If Prisma still rejects it, check that the provider in');
   console.log('  prisma/schema.prisma matches the scheme above.');
+  if (isTransactionPooler) {
+    console.log('');
+    console.log('  NOTE: this is a transaction-pooler URL (port 6543), which is the right');
+    console.log('  choice for the running app. It cannot run schema changes though — for');
+    console.log('  `prisma db push` use the session pooler URL (port 5432) instead.');
+  }
   console.log('');
   process.exit(0);
 }
