@@ -6,6 +6,10 @@ dist/
 .env
 .env.local
 .env*.local
+# Local safety copies of the environment file
+.env.backup
+.env.local-backup
+*.env.backup
 *.log
 npm-debug.log*
 .DS_Store
@@ -15,6 +19,9 @@ prisma/dev.db-journal
 # Production SQLite database — never commit live data
 prisma/prod.db
 prisma/prod.db-journal
+# Any other SQLite file (scratch databases, deploy probes, backups)
+prisma/*.db
+prisma/*.db-journal
 prisma/*.db-wal
 prisma/*.db-shm
 
