@@ -557,18 +557,42 @@ async function main() {
     { group: 'reviews', key: 'reviews_auto_approve', value: 'false', type: 'boolean', label: 'Auto-approve Reviews' },
     { group: 'reviews', key: 'reviews_guest', value: 'true', type: 'boolean', label: 'Allow Guest Reviews' },
 
-    // Email
+    // Email + SMTP
+    { group: 'email', key: 'email_enabled', value: 'true', type: 'boolean', label: 'Enable Transactional Email' },
     { group: 'email', key: 'email_from_name', value: 'BD Market', type: 'text', label: 'From Name' },
     { group: 'email', key: 'email_from_address', value: 'no-reply@bdmarket.com.bd', type: 'text', label: 'From Email' },
+    { group: 'email', key: 'smtp_host', value: '', type: 'text', label: 'SMTP Host' },
+    { group: 'email', key: 'smtp_port', value: '587', type: 'number', label: 'SMTP Port' },
+    { group: 'email', key: 'smtp_encryption', value: 'tls', type: 'select', label: 'Encryption' },
+    { group: 'email', key: 'smtp_username', value: '', type: 'text', label: 'SMTP Username' },
+    { group: 'email', key: 'smtp_password', value: '', type: 'text', label: 'SMTP Password' },
     { group: 'email', key: 'email_order_confirm', value: 'true', type: 'boolean', label: 'Send Order Confirmation' },
     { group: 'email', key: 'email_order_shipped', value: 'true', type: 'boolean', label: 'Send Shipping Notification' },
     { group: 'email', key: 'email_footer_text', value: 'BD Market — House 12, Road 5, Dhanmondi, Dhaka 1205, Bangladesh', type: 'textarea', label: 'Email Footer' },
 
-    // SMS
+    // SMS gateway
     { group: 'sms', key: 'sms_enabled', value: 'false', type: 'boolean', label: 'Enable SMS' },
+    { group: 'sms', key: 'sms_provider', value: 'greenweb', type: 'select', label: 'SMS Gateway' },
+    { group: 'sms', key: 'sms_api_key', value: '', type: 'text', label: 'API Key' },
+    { group: 'sms', key: 'sms_api_url', value: '', type: 'text', label: 'Custom API Endpoint' },
     { group: 'sms', key: 'sms_sender_id', value: 'BDMARKET', type: 'text', label: 'SMS Sender ID' },
     { group: 'sms', key: 'sms_order_confirm', value: 'true', type: 'boolean', label: 'SMS on Order Confirm' },
     { group: 'sms', key: 'sms_order_shipped', value: 'true', type: 'boolean', label: 'SMS on Shipment' },
+    { group: 'sms', key: 'sms_order_delivered', value: 'true', type: 'boolean', label: 'SMS on Delivery' },
+
+    // Courier & delivery
+    { group: 'courier', key: 'courier_default', value: 'manual', type: 'select', label: 'Default Courier' },
+    { group: 'courier', key: 'courier_cod_enabled', value: 'true', type: 'boolean', label: 'Send COD Amount to Courier' },
+    { group: 'courier', key: 'courier_pickup_address', value: '', type: 'textarea', label: 'Pickup Address' },
+    { group: 'courier', key: 'courier_return_address', value: '', type: 'textarea', label: 'Return Address' },
+    { group: 'courier', key: 'pathao_client_id', value: '', type: 'text', label: 'Pathao Client ID' },
+    { group: 'courier', key: 'pathao_client_secret', value: '', type: 'text', label: 'Pathao Client Secret' },
+    { group: 'courier', key: 'pathao_username', value: '', type: 'text', label: 'Pathao Username' },
+    { group: 'courier', key: 'pathao_password', value: '', type: 'text', label: 'Pathao Password' },
+    { group: 'courier', key: 'steadfast_api_key', value: '', type: 'text', label: 'Steadfast API Key' },
+    { group: 'courier', key: 'steadfast_secret_key', value: '', type: 'text', label: 'Steadfast Secret Key' },
+    { group: 'courier', key: 'redx_api_key', value: '', type: 'text', label: 'RedX API Key' },
+    { group: 'courier', key: 'redx_pickup_store_id', value: '', type: 'text', label: 'RedX Pickup Store ID' },
 
     // Social
     { group: 'social', key: 'social_facebook', value: 'https://facebook.com/bdmarket', type: 'text', label: 'Facebook' },

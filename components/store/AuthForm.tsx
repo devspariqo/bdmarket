@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, Loader2, AlertCircle, Store, ShieldCheck, Truck, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Loader2, AlertCircle, Store, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function AuthForm({ mode, siteName }: { mode: 'login' | 'register'; siteName: string }) {
@@ -60,10 +60,11 @@ export default function AuthForm({ mode, siteName }: { mode: 'login' | 'register
   );
 
   return (
-    <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-2">
-      {/* Left — form */}
-      <div className="flex items-center justify-center px-5 py-12 sm:px-8">
-        <div className="w-full max-w-md">
+    /* Single centred column. The sign-in card used to sit beside a full-height
+       marketing panel with a stock photo; the form now owns the page and stays
+       centred at every width. */
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-5 py-12 sm:px-8">
+      <div className="w-full max-w-md">
           <Link href="/" className="mb-8 inline-flex items-center gap-2.5">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white">
               <Store className="h-5 w-5" strokeWidth={2.4} />
@@ -187,40 +188,6 @@ export default function AuthForm({ mode, siteName }: { mode: 'login' | 'register
               <p className="mt-1.5 font-mono text-[12px] text-ink-600">rahim@example.com / customer123</p>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Right — visual */}
-      <div className="relative hidden overflow-hidden bg-ink-900 lg:block">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-40"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/60 to-transparent" />
-        <div className="relative flex h-full flex-col justify-end p-12">
-          <h2 className="max-w-md font-display text-4xl font-bold leading-tight text-white">
-            Bangladesh's finest fashion, one cart away.
-          </h2>
-          <div className="mt-8 space-y-3.5">
-            {[
-              { icon: Truck, t: 'Free delivery over ৳2,000', s: 'All 64 districts covered' },
-              { icon: ShieldCheck, t: 'Cash on Delivery available', s: 'Pay when your parcel arrives' },
-              { icon: Store, t: 'Authentic local craftsmanship', s: 'Jamdani, panjabi, jute & more' },
-            ].map((f) => (
-              <div key={f.t} className="flex items-center gap-3.5">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-brand-300 backdrop-blur">
-                  <f.icon className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-[15px] font-semibold text-white">{f.t}</p>
-                  <p className="text-[13px] text-ink-400">{f.s}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );

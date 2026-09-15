@@ -1,7 +1,7 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-15T12:45:16.687Z
--- 23 tables populated with 646 rows.
+-- Generated 2026-09-15T13:05:10.622Z
+-- 23 tables populated with 668 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
 --     database, or one whose contents you do not mind losing.
@@ -1249,7 +1249,7 @@ INSERT INTO `Review` (`id`, `productId`, `customerId`, `authorName`, `authorEmai
 ('cmtzd3wi400dy670t0aegexjc','cmtzd3nla003d670tga0dmkyi','cmtzd3oj30044670twbzlk59a','Imran K.','reviewer371@example.com',5,'Great customer service','Had a sizing question and their team responded on WhatsApp within minutes. Very helpful. Product fits perfectly.','approved',1,22,'2026-02-01 05:17:11.115'),
 ('cmtzd3wkj00e0670tl1s8src8','cmtzd3nla003d670tga0dmkyi','cmtzd3onk0048670tlg249haq','Ayesha S.','reviewer372@example.com',4,'Nice product','Happy with the purchase overall. Packaging was neat and the product was exactly as shown.','approved',1,5,'2026-01-30 05:17:11.203');
 
--- Setting: 82 rows
+-- Setting: 104 rows
 INSERT INTO `Setting` (`id`, `group`, `key`, `value`, `type`, `label`, `updatedAt`) VALUES
 ('cmtzd3p9a005j670t2e9y6any','general','site_name','','text','Site Name','2026-09-14 08:31:17.894'),
 ('cmtzd3p9a005k670t7xqjbik5','general','site_name_bn','','text','Site Name (Bangla)','2026-09-14 08:31:17.894'),
@@ -1336,7 +1336,29 @@ Sitemap: http://localhost:3000/sitemap.xml','textarea','robots.txt Content','202
 ('cmtzd3p9b007p670tcm05as16','advanced','advanced_cache','true','boolean','Enable Page Cache','2026-09-13 05:17:01.726'),
 ('cmtzd3p9b007q670tubqcgjzy','advanced','advanced_debug','false','boolean','Debug Mode','2026-09-13 05:17:01.726'),
 ('cmu0zp76k001vi90mkhfs06e4','payment_logos','payment_logos','[{"id":"bkash","label":"Bkash","logo":"/uploads/1789374804569-bkash-payments.png","color":"#e2136e","mark":""},{"id":"nagad","label":"Nagad","logo":"/uploads/1789374816763-nagad-payments.png","color":"#f58220","mark":""},{"id":"rocket","label":"Rocket","logo":"/uploads/1789374821198-rocket-payments.png","color":"#8c3494","mark":""},{"id":"visa","label":"VISA","logo":"/uploads/1789374844242-visa-payments.png","color":"#1a1f71","mark":""},{"id":"mastercard","label":"Mastercard","logo":"/uploads/1789374849720-mastercard-payments.png","color":"#eb001b","mark":""},{"id":"cod","label":"Cash On Delivery","logo":"/uploads/1789374994363-cod-payments.png","color":"#334155","mark":""}]','json','Accepted Payment Logos','2026-09-14 08:39:49.932'),
-('cmu2nzbeb0emyj9he','general','footer_logo','','image','Footer Logo URL','2026-09-15 12:44:51.445');
+('cmu2nzbeb0emyj9he','general','footer_logo','','image','Footer Logo URL','2026-09-15 12:44:51.445'),
+('cmu2op4xg3zdjqhvy','email','email_enabled','true','boolean','Enable Transactional Email','2026-09-15 13:04:56.116'),
+('cmu2op535zqqmi6so','email','smtp_host','','text','SMTP Host','2026-09-15 13:04:56.321'),
+('cmu2op552cfcnuoef','email','smtp_port','587','number','SMTP Port','2026-09-15 13:04:56.390'),
+('cmu2op56x93bdtsrf','email','smtp_encryption','tls','select','Encryption','2026-09-15 13:04:56.457'),
+('cmu2op58wsuxfsr9a','email','smtp_username','','text','SMTP Username','2026-09-15 13:04:56.528'),
+('cmu2op5arxq9n08bu','email','smtp_password','','text','SMTP Password','2026-09-15 13:04:56.595'),
+('cmu2op5colpy1xq34','sms','sms_provider','greenweb','select','SMS Gateway','2026-09-15 13:04:56.664'),
+('cmu2op5ek3ut0dsct','sms','sms_api_key','','text','API Key','2026-09-15 13:04:56.732'),
+('cmu2op5gg7rerkb2a','sms','sms_api_url','','text','Custom API Endpoint','2026-09-15 13:04:56.800'),
+('cmu2op5i9utlj4h62','sms','sms_order_delivered','true','boolean','SMS on Delivery','2026-09-15 13:04:56.865'),
+('cmu2op5k3flcdu1x6','courier','courier_default','manual','select','Default Courier','2026-09-15 13:04:56.931'),
+('cmu2op5m1dqd771o5','courier','courier_cod_enabled','true','boolean','Send COD Amount to Courier','2026-09-15 13:04:57.001'),
+('cmu2op5nx3fdw6aib','courier','courier_pickup_address','','textarea','Pickup Address','2026-09-15 13:04:57.069'),
+('cmu2op5przwyxh5lb','courier','courier_return_address','','textarea','Return Address','2026-09-15 13:04:57.135'),
+('cmu2op5rqptj1dqp3','courier','pathao_client_id','','text','Pathao Client ID','2026-09-15 13:04:57.206'),
+('cmu2op5tm6cxnipy0','courier','pathao_client_secret','','text','Pathao Client Secret','2026-09-15 13:04:57.274'),
+('cmu2op5vgz1sr31uz','courier','pathao_username','','text','Pathao Username','2026-09-15 13:04:57.340'),
+('cmu2op5x9qgue2wqt','courier','pathao_password','','text','Pathao Password','2026-09-15 13:04:57.405'),
+('cmu2op5z2a8ly0n4y','courier','steadfast_api_key','','text','Steadfast API Key','2026-09-15 13:04:57.470'),
+('cmu2op60x6tkcawk2','courier','steadfast_secret_key','','text','Steadfast Secret Key','2026-09-15 13:04:57.537'),
+('cmu2op62r7t6u32vm','courier','redx_api_key','','text','RedX API Key','2026-09-15 13:04:57.604'),
+('cmu2op64ldas2wzlm','courier','redx_pickup_store_id','','text','RedX Pickup Store ID','2026-09-15 13:04:57.669');
 
 -- ShippingZone: 7 rows
 INSERT INTO `ShippingZone` (`id`, `name`, `districts`, `method`, `rate`, `freeOver`, `minDays`, `maxDays`, `codEnabled`, `status`, `position`, `createdAt`) VALUES

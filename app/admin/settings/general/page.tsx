@@ -3,7 +3,7 @@ import { renderSettingsGroup } from '@/components/admin/settings/renderGroup';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = { title: 'general' };
+export const metadata: Metadata = { title: 'General Settings' };
 
 export default function Page() {
   return renderSettingsGroup('general');

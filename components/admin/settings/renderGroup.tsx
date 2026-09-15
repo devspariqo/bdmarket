@@ -19,6 +19,17 @@ type Meta = {
   images?: Record<string, { maxWidth?: number; accept?: string; previewClassName?: string }>;
   /** Keys rendered with the colour picker instead of a plain text input. */
   colors?: string[];
+  /**
+   * Keys this group declares that may not exist as a `Setting` row yet, with the
+   * values a fresh install would have.
+   *
+   * A group's fields are driven by rows in the database, so a key added to this
+   * file after an install was seeded would otherwise be invisible until someone
+   * re-seeded — which would wipe their configuration. Declaring it here makes the
+   * field render immediately, and the first save creates the row. See
+   * `renderSettingsGroup` below.
+   */
+  defaults?: Record<string, { value?: string; type?: string; label?: string }>;
 };
 
 /** Keys that should always be treated as colours, regardless of group. */
@@ -124,19 +135,114 @@ export const SETTINGS_META: Record<string, Meta> = {
     },
   },
   email: {
-    title: 'Email Settings',
-    description: 'Transactional email sender identity and notification triggers.',
+    title: 'Email & SMTP',
+    description:
+      'The outgoing mail server and the transactional emails sent to customers. Credentials are stored in the database, so the mail server can be changed without a redeploy.',
     hints: {
-      email_from_address: 'Use a domain you control to avoid spam filtering.',
+      email_enabled:
+        'Master switch for every transactional email. Turn it off while testing so real customers are not emailed.',
+      smtp_host: 'The outgoing mail server, e.g. smtp.gmail.com or smtp.hostinger.com.',
+      smtp_port: '587 for STARTTLS (the usual choice), 465 for implicit SSL, 25 only for an internal relay.',
+      smtp_encryption: 'Match this to the port — STARTTLS on 587, SSL/TLS on 465, None only on a trusted internal relay.',
+      smtp_username: 'Usually the full mailbox address, e.g. orders@bdmarket.com.bd.',
+      smtp_password:
+        'Use an app password rather than the mailbox login where the provider offers them. It is stored in the database, so rotate it if the database is ever shared.',
+      email_from_name: 'The sender name customers see, e.g. "BD Market Orders".',
+      email_from_address:
+        'Use a domain you control, and one your SMTP server is allowed to send as, or mail lands in spam.',
+      email_order_confirm: 'Sent as soon as an order is placed.',
+      email_order_shipped: 'Sent when an order is marked shipped, including the tracking number if one is set.',
+      email_footer_text: 'Appended to the bottom of every email. Keep it to the essentials.',
+    },
+    defaults: {
+      email_enabled: { value: 'true', type: 'boolean', label: 'Enable Transactional Email' },
+      smtp_host: { value: '', type: 'text', label: 'SMTP Host' },
+      smtp_port: { value: '587', type: 'number', label: 'SMTP Port' },
+      smtp_encryption: { value: 'tls', type: 'select', label: 'Encryption' },
+      smtp_username: { value: '', type: 'text', label: 'SMTP Username' },
+      smtp_password: { value: '', type: 'text', label: 'SMTP Password' },
+    },
+    options: {
+      smtp_encryption: [
+        { value: 'tls', label: 'STARTTLS — port 587' },
+        { value: 'ssl', label: 'SSL / TLS — port 465' },
+        { value: 'none', label: 'None — unencrypted' },
+      ],
     },
     rows: { email_footer_text: 3 },
   },
   sms: {
-    title: 'SMS Settings',
-    description: 'Bangladeshi SMS gateway configuration for order notifications.',
+    title: 'SMS Gateway',
+    description:
+      'The Bangladeshi SMS gateway used for order notifications, and which events send a message. Credentials live in the database rather than the environment.',
     hints: {
+      sms_enabled: 'Master switch for all outgoing SMS.',
+      sms_provider: 'Pick your gateway. Choose Custom if it is not listed, then fill in the endpoint below.',
+      sms_api_key: 'The API key or token your gateway issued. Masked in the admin — use Reveal to check it.',
+      sms_api_url: 'Only needed for a Custom gateway. The endpoint messages are POSTed to.',
       sms_sender_id: 'Must be an alphanumeric sender ID approved by your gateway (max 11 characters).',
+      sms_order_confirm: 'Sent when an order is placed.',
+      sms_order_shipped: 'Sent when an order is handed to the courier.',
+      sms_order_delivered: 'Sent when the order is marked delivered.',
     },
+    defaults: {
+      sms_provider: { value: 'greenweb', type: 'select', label: 'SMS Gateway' },
+      sms_api_key: { value: '', type: 'text', label: 'API Key' },
+      sms_api_url: { value: '', type: 'text', label: 'Custom API Endpoint' },
+      sms_order_delivered: { value: 'true', type: 'boolean', label: 'SMS on Delivery' },
+    },
+    options: {
+      sms_provider: [
+        { value: 'greenweb', label: 'Greenweb' },
+        { value: 'bulksmsbd', label: 'Bulk SMS BD' },
+        { value: 'sslwireless', label: 'SSL Wireless' },
+        { value: 'banglanet', label: 'Banglanet' },
+        { value: 'custom', label: 'Custom gateway' },
+      ],
+    },
+  },
+  courier: {
+    title: 'Courier & Delivery',
+    description:
+      'Courier accounts used to dispatch orders, plus the pickup and return addresses that go on every consignment note. Credentials are stored in the database.',
+    hints: {
+      courier_default: 'The courier pre-selected when you book a shipment. Manual means you arrange delivery yourself.',
+      courier_cod_enabled:
+        'Include the collectable cash amount when booking, so the courier collects payment and remits it back to you.',
+      courier_pickup_address: 'Where couriers collect parcels from. Printed on the consignment note.',
+      courier_return_address: 'Where undelivered parcels come back to.',
+      pathao_client_id: 'From Pathao Merchant → Developer API.',
+      pathao_client_secret: 'Masked in the admin — use Reveal to check it.',
+      pathao_username: 'The email address on your Pathao merchant account.',
+      pathao_password: 'Masked in the admin — use Reveal to check it.',
+      steadfast_api_key: 'From Steadfast → API settings.',
+      steadfast_secret_key: 'Masked in the admin — use Reveal to check it.',
+      redx_api_key: 'From RedX → API access.',
+      redx_pickup_store_id: 'The RedX pickup store parcels are dispatched from.',
+    },
+    defaults: {
+      courier_default: { value: 'manual', type: 'select', label: 'Default Courier' },
+      courier_cod_enabled: { value: 'true', type: 'boolean', label: 'Send COD Amount to Courier' },
+      courier_pickup_address: { value: '', type: 'textarea', label: 'Pickup Address' },
+      courier_return_address: { value: '', type: 'textarea', label: 'Return Address' },
+      pathao_client_id: { value: '', type: 'text', label: 'Pathao Client ID' },
+      pathao_client_secret: { value: '', type: 'text', label: 'Pathao Client Secret' },
+      pathao_username: { value: '', type: 'text', label: 'Pathao Username' },
+      pathao_password: { value: '', type: 'text', label: 'Pathao Password' },
+      steadfast_api_key: { value: '', type: 'text', label: 'Steadfast API Key' },
+      steadfast_secret_key: { value: '', type: 'text', label: 'Steadfast Secret Key' },
+      redx_api_key: { value: '', type: 'text', label: 'RedX API Key' },
+      redx_pickup_store_id: { value: '', type: 'text', label: 'RedX Pickup Store ID' },
+    },
+    options: {
+      courier_default: [
+        { value: 'manual', label: 'Manual — arrange delivery yourself' },
+        { value: 'pathao', label: 'Pathao' },
+        { value: 'steadfast', label: 'Steadfast' },
+        { value: 'redx', label: 'RedX' },
+      ],
+    },
+    rows: { courier_pickup_address: 3, courier_return_address: 3 },
   },
   social: {
     title: 'Social Media',
@@ -170,10 +276,9 @@ export async function renderSettingsGroup(group: string) {
   if (!meta) notFound();
 
   const rows = await getSettingsGroup(group);
-  if (!rows.length) notFound();
 
   /**
-   * Uploaders and colour pickers declared in `meta` that have no Setting row.
+   * Fields declared in `meta` that have no Setting row yet.
    *
    * A key added to this file after an install was seeded (such as
    * `footer_logo`) exists only in code, so without this the field would be
@@ -183,24 +288,39 @@ export async function renderSettingsGroup(group: string) {
    *
    * Sorted by key alongside the real rows so a synthetic field sits exactly
    * where it would if it had been seeded.
+   *
+   * `meta.defaults` covers ordinary text/boolean/select fields, which carry no
+   * implicit type the way an uploader or a colour picker does.
    */
-  const declared = [...Object.keys(meta.images ?? {}), ...(meta.colors ?? [])];
+  const declared = [
+    ...Object.keys(meta.images ?? {}),
+    ...(meta.colors ?? []),
+    ...Object.keys(meta.defaults ?? {}),
+  ];
   const allRows = [
     ...rows,
     ...declared
       .filter((key) => !rows.some((r) => r.key === key))
-      .map((key) => ({
-        id: `virtual-${group}-${key}`,
-        group,
-        key,
-        value: '',
-        // Match what a seeded row would look like, so the first save writes
-        // `type = 'image'` for an uploader rather than a generic 'text'.
-        type: meta.images?.[key] ? 'image' : 'text',
-        label: humaniseKey(key),
-        updatedAt: new Date(),
-      })),
+      .map((key) => {
+        const d = meta.defaults?.[key];
+        return {
+          id: `virtual-${group}-${key}`,
+          group,
+          key,
+          value: d?.value ?? '',
+          // Match what a seeded row would look like, so the first save writes the
+          // right type rather than a generic 'text'.
+          type: meta.images?.[key] ? 'image' : d?.type ?? 'text',
+          label: d?.label ?? humaniseKey(key),
+          updatedAt: new Date(),
+        };
+      }),
   ].sort((a, b) => a.key.localeCompare(b.key));
+
+  // Checked after synthesis, not before: a group introduced entirely in code (such
+  // as `courier`) has no rows until the merchant saves it for the first time, and
+  // 404-ing there would make the page unreachable.
+  if (!allRows.length) notFound();
 
   const fields = allRows.map((r) => ({
     key: r.key,

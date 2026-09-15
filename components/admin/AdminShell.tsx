@@ -8,7 +8,7 @@ import {
   Star, FileText, Newspaper, Image as ImageIcon, Settings, Store, Menu as MenuIcon,
   X, LogOut, Bell, Search, ChevronDown, ChevronRight, Truck, CreditCard,
   Globe, Palette, BarChart3, Percent, Award, Monitor, PanelLeftClose,
-  PanelLeft, ExternalLink, Layers, Boxes, Megaphone, Mail, ShieldCheck,
+  PanelLeft, ExternalLink, Layers, Boxes, Megaphone, Mail, ShieldCheck, Bike,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -90,8 +90,9 @@ export default function AdminShell({
         { href: '/admin/settings/payments', icon: Percent, label: 'Payment Settings' },
         { href: '/admin/settings/payment-logos', icon: CreditCard, label: 'Payment Logos' },
         { href: '/admin/settings/shipping', icon: Truck, label: 'Shipping Settings' },
-        { href: '/admin/settings/email', icon: Mail, label: 'Email' },
-        { href: '/admin/settings/sms', icon: ShieldCheck, label: 'SMS' },
+        { href: '/admin/settings/courier', icon: Bike, label: 'Courier & Delivery' },
+        { href: '/admin/settings/email', icon: Mail, label: 'Email & SMTP' },
+        { href: '/admin/settings/sms', icon: ShieldCheck, label: 'SMS Gateway' },
         { href: '/admin/settings/social', icon: Globe, label: 'Social Media' },
         { href: '/admin/settings/analytics', icon: BarChart3, label: 'Analytics Codes' },
         { href: '/admin/settings/advanced', icon: Settings, label: 'Advanced' },

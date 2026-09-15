@@ -3,7 +3,7 @@ import { renderSettingsGroup } from '@/components/admin/settings/renderGroup';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = { title: 'social' };
+export const metadata: Metadata = { title: 'Social Media' };
 
 export default function Page() {
   return renderSettingsGroup('social');
