@@ -175,13 +175,23 @@ configuration at all.**
 pushing from your own PC needs an allowlist entry first. Importing sidesteps that entirely, because
 phpMyAdmin runs on the server.
 
-1. Generate the SQL (already committed at `prisma/schema.sql`; regenerate after any schema change):
+1. Generate the SQL (both files are committed; regenerate after any schema change):
    ```bash
    npm run db:sql
    ```
 2. hPanel → **Databases** → **phpMyAdmin** next to your database.
 3. Select the database in the left sidebar → **Import** tab.
-4. Choose `prisma/schema.sql` → **Go**.
+4. Choose one of the two files and click **Go**:
+
+| File | Result |
+| --- | --- |
+| `prisma/schema.sql` | 27 empty tables — a clean store |
+| `prisma/schema-with-demo.sql` | 27 tables **plus 645 demo rows** — products, orders, customers, reviews, settings, and the admin account |
+
+`schema-with-demo.sql` drops and recreates every table, so it is safe to re-import but **wipes
+anything already in that database**. It omits `AuditLog`, `SearchQuery` and `PageView` as
+operational noise. The admin login is `admin@bdmarket.com.bd` / `admin123` — **change that
+immediately**, it has been public in this repository.
 
 **Option 2 — allow your IP and push from your PC.**
 
