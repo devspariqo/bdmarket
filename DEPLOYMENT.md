@@ -114,7 +114,7 @@ This is the closest thing to "shared hosting that works". Providers that offer t
 ### B0. Hostinger Web Apps — the managed flow
 
 Hostinger's **Web Apps** (Websites → Add Website → Node.js web app) builds and runs the app for  
-you from a connected GitHub repository. Two things about it are easy to get wrong:
+you from a connected GitHub repository. Four things about it are easy to get wrong:
 
 **1. SQLite will not work here, even though Hostinger is not serverless.** Builds land in  
 `~/domains/{domain}/hbuilds/current/`, and `current` is a symlink to the live build. **Every  
@@ -132,6 +132,8 @@ service to sign up for.
 3. Hostinger prefixes both with your account ID, so you end up with something like
    `u860892017_bdmarket`. Save the password — it is shown only once.
 4. Note the four values: **database name**, **username**, **password** and **host**.
+5. Commit the schema change and push — Hostinger rebuilds automatically. (The provider switch and
+   the tables are covered under *Creating the tables* below.)
 
 > ⚠️ **The host must be `127.0.0.1`, not `localhost`.** PHP apps reach MySQL over a local socket,
 > so `localhost` works for them. Node.js connects over TCP and resolves `localhost` to the IPv6
@@ -139,8 +141,18 @@ service to sign up for.
 > `Access denied for user 'u123456789_admin'@'::1'`. `127.0.0.1` forces IPv4 and works on every
 > account.
 
-5. Commit the schema change and push — Hostinger rebuilds automatically. (The provider switch and
-   the tables are covered under *Creating the tables* below.)
+**3. Hostinger overrides your `output` setting — it always builds with `output: 'standalone'`.**
+You do not set this yourself, and any `output` value in your config is replaced. Two consequences:
+
+- Your config must **export an object** (`module.exports = { ... }`). A *function* export
+  (`module.exports = (phase) => ({ ... })`) loses both your settings and the standalone output,
+  and the deploy fails with *Next.js build produced no standalone server or static output*. The
+  file must also be named `next.config.js` / `.mjs` / `.ts` / `.mts` — `next.config.cjs` is
+  silently ignored and the build continues with defaults.
+- Standalone is a **strict production runtime**. Pages that are prerendered at build time are
+  held to static-rendering rules, so a route that reads `cookies()` and is *also* prerendered
+  will 500 here even though it works locally. See *Static storefront routes* under
+  Troubleshooting before adding `generateStaticParams` anywhere under `app/(store)/`.
 
 Your `DATABASE_URL` then looks like this — a single line, with the three values you just noted:
 
@@ -691,6 +703,8 @@ extract on the server.
 
 | Symptom                                                          | Cause                                                     | Fix                                                                                                          |
 | ---------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Homepage works, every `/product/<slug>` 500s**                 | `generateStaticParams` on a route whose layout reads `cookies()` | Remove it and set `export const dynamic = 'force-dynamic'` — see *Static storefront routes* below             |
+| **"Next.js build produced no standalone server or static output"** | A *function* `next.config` export, or an unsupported filename | Export a config **object** from `next.config.js`. Not a function, not `next.config.cjs`                       |
 | **"Query engine library not found"**                             | Windows-built Prisma on Linux                             | `binaryTargets` in schema (already set), then `npx prisma generate` and `npm run build` on the server        |
 | **Uploaded images 404**                                          | Next snapshots `public/` at boot                          | Already fixed — uploads are served by `app/uploads/[...path]/route.ts`. If you removed that file, restore it |
 | **`EACCES` / can't write `prod.db`**                             | File permissions                                          | `chmod 664 prisma/prod.db && chmod 775 prisma`                                                               |
@@ -702,6 +716,47 @@ extract on the server.
 | **Changes not showing**                                          | Build cached                                              | `rm -rf .next && npm run build`, then restart                                                                |
 | **`EINVAL readlink` during build**                               | OneDrive/Dropbox sync interference                        | Build on the server, or move the project out of OneDrive first                                               |
 | **Out of memory during build**                                   | Shared hosts are RAM-limited                              | Build locally and upload `.next`, or upgrade the plan                                                        |
+
+---
+
+## Static storefront routes — do not add `generateStaticParams` to them
+
+**Never put `generateStaticParams` on a route under `app/(store)/`.** It will build fine, work
+locally, and then 500 in production.
+
+The reason is that `app/(store)/layout.tsx` wraps *every* storefront page and reads `cookies()`
+(for the cart count and the customer session). A route that is statically prerendered is not
+allowed to touch a dynamic API. `next dev` and a local `next start` tolerate the mismatch and
+quietly fall back to dynamic rendering — which is why this only ever shows up after deploying.
+A strict runtime enforces the rule and the route dies with `DYNAMIC_SERVER_USAGE` (HTTP 500)
+while the rest of the site keeps working.
+
+`/product/[slug]` hit exactly this. It was the only storefront route marked **● (SSG)** in the
+build output:
+
+```
+┌ ƒ /                          ← Dynamic
+├ ƒ /category/[slug]           ← Dynamic
+├ ƒ /brand/[slug]              ← Dynamic
+├ ƒ /blog/[slug]               ← Dynamic
+├ ● /product/[slug]            ← SSG  ← the odd one out, and the one that 500'd
+```
+
+**Check after every change to a storefront route.** `npm run build` prints the table above; any
+`○` or `●` row under `app/(store)/` is a future production 500. The fix is to drop
+`generateStaticParams` and make the intent explicit:
+
+```ts
+export const dynamic = 'force-dynamic';
+```
+
+Nothing is lost by doing so. Because the layout already forces dynamic rendering for the whole
+subtree, the prerendered HTML was never servable in the first place — `generateStaticParams` only
+produced output that the runtime then had to throw away, and that it crashed on instead.
+
+Routes that are *safe* to prerender are the ones outside `(store)` that never touch cookies:
+`app/sitemap.ts`, `app/robots.ts` and `app/manifest.ts` are intentionally static and read the
+database at build time.
 
 ---
 

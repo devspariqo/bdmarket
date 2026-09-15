@@ -13,7 +13,31 @@ import ProductSpecs from '@/components/store/ProductSpecs';
 import ProductReviews from '@/components/store/ProductReviews';
 import { PaymentBadge } from '@/components/PaymentMark';
 
-export const revalidate = 60;
+/**
+ * Rendered on demand — never prerendered.
+ *
+ * This route used to declare `generateStaticParams`, which made Next.js build
+ * every product page as static HTML. It was the only storefront route marked
+ * ● (SSG) in the build output, while `/`, `/category/[slug]`, `/brand/[slug]`,
+ * `/blog/[slug]` and the rest all came out ƒ (Dynamic).
+ *
+ * That combination is not safe here, because every storefront page is wrapped
+ * by `app/(store)/layout.tsx`, which reads `cookies()` for the cart count and
+ * the customer session — and a statically prerendered route is not allowed to
+ * touch a dynamic API.
+ *
+ * `next dev` and a local `next start` tolerate the mismatch and quietly fall
+ * back to dynamic rendering, so it looked fine in development. A strict
+ * production runtime enforces the rule instead: Hostinger builds with
+ * `output: 'standalone'`, and there every `/product/<slug>` request failed with
+ * DYNAMIC_SERVER_USAGE (HTTP 500) while the rest of the site kept working.
+ *
+ * The layout already forces dynamic rendering on the whole subtree, so the
+ * prerendered HTML was never actually servable. Dropping `generateStaticParams`
+ * costs nothing and makes this route behave like `/category/[slug]` and
+ * `/brand/[slug]`, which have always rendered correctly.
+ */
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const p = await prisma.product.findUnique({
@@ -55,19 +79,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       'product:availability': p.stock > 0 ? 'in stock' : 'out of stock',
     },
   };
-}
-
-export async function generateStaticParams() {
-  try {
-    const products = await prisma.product.findMany({
-      where: { status: 'published' },
-      select: { slug: true },
-      take: 50,
-    });
-    return products.map((p) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
 }
 
 export default async function ProductPage({ params }: { params: { slug: string } }) {
