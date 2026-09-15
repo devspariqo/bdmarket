@@ -52,6 +52,16 @@ function generateDdl() {
  *
  * The target types matter, not the SQLite ones: DateTime is an epoch integer in
  * SQLite but a DATETIME(3) in MySQL, and the conversion depends on knowing that.
+ *
+ * Column lines are identified structurally — they are the only lines that begin
+ * with a backtick-quoted name followed by a type. Constraint lines begin with a
+ * bare keyword (`PRIMARY KEY ...`, `UNIQUE INDEX ...`), so they never match.
+ *
+ * Do NOT filter by column name here. An earlier version skipped any column
+ * called `key` to avoid constraint lines, which silently dropped the real
+ * `Setting.key` column — the INSERT then omitted it and every row got the
+ * default '', so the second row failed with
+ *   #1062 - Duplicate entry '' for key 'Setting_key_key'
  */
 function parseColumnTypes(ddl) {
   const tables = {};
@@ -60,14 +70,36 @@ function parseColumnTypes(ddl) {
   while ((m = tableRe.exec(ddl))) {
     const cols = {};
     for (const line of m[2].split('\n')) {
-      const cm = line.match(/^\s*`([^`]+)`\s+([A-Za-z0-9()]+)/);
-      if (cm && !/^(PRIMARY|UNIQUE|INDEX|CONSTRAINT|KEY)$/i.test(cm[1])) {
-        cols[cm[1]] = cm[2].toUpperCase();
-      }
+      const cm = line.match(/^\s*`([^`]+)`\s+([A-Za-z0-9(),]+)/);
+      if (cm) cols[cm[1]] = cm[2].toUpperCase();
     }
     tables[m[1]] = cols;
   }
   return tables;
+}
+
+/**
+ * Cross-check the parsed columns against the DDL, so a parser that silently
+ * drops a column is caught before it produces an INSERT missing that column.
+ * Returns a list of problems; empty means the parse is complete.
+ */
+function auditParsedColumns(ddl, columnTypes) {
+  const problems = [];
+
+  const declared = (ddl.match(/^\s+`[^`]+`\s+[A-Za-z0-9(),]+/gm) || []).length;
+  const parsed = Object.values(columnTypes).reduce(
+    (n, cols) => n + Object.keys(cols).length,
+    0
+  );
+
+  if (declared !== parsed) {
+    problems.push(
+      `parsed ${parsed} columns but the DDL declares ${declared} — ` +
+        'some column is being dropped by the parser'
+    );
+  }
+
+  return problems;
 }
 
 /** Quote a JavaScript value as a MySQL literal. */
@@ -291,6 +323,18 @@ function main() {
   console.log(`  ✓ prisma/schema.sql — DDL only (${(ddl.match(/CREATE TABLE/g) || []).length} tables)`);
 
   const columnTypes = parseColumnTypes(ddl);
+
+  // Fail before dumping if the parser missed a column — an INSERT that omits one
+  // still looks well-formed, so this would otherwise only surface as a duplicate
+  // key or constraint error partway through the import.
+  const audit = auditParsedColumns(ddl, columnTypes);
+  if (audit.length) {
+    console.log('\n  ✗ Column parse is incomplete:');
+    audit.forEach((p) => console.log(`      ${p}`));
+    console.log('\n  schema.sql was written; schema-with-demo.sql was not.\n');
+    process.exit(1);
+  }
+
   const dump = dumpData(columnTypes);
 
   if (dump.error) {
