@@ -214,6 +214,28 @@ function verifySql(filePath) {
   const problems = [];
   let checked = 0;
 
+  // Ordering guard. This shipped broken once: the DROP statements sat above the
+  // SET FOREIGN_KEY_CHECKS = 0, so dropping a parent table failed with
+  // "#1451 - Cannot delete or update a parent row" while children still
+  // referenced it. Assert the disable comes first.
+  const disableAt = sql.search(/SET\s+FOREIGN_KEY_CHECKS\s*=\s*0/i);
+  const firstDropAt = sql.search(/DROP\s+TABLE/i);
+  if (firstDropAt !== -1 && (disableAt === -1 || disableAt > firstDropAt)) {
+    problems.push(
+      'ORDERING: SET FOREIGN_KEY_CHECKS = 0 must appear before the first DROP TABLE, ' +
+        'otherwise dropping a parent table fails with #1451'
+    );
+  }
+
+  // Every disable must be matched by a re-enable at the end.
+  const disables = (sql.match(/SET\s+FOREIGN_KEY_CHECKS\s*=\s*0/gi) || []).length;
+  const enables = (sql.match(/SET\s+FOREIGN_KEY_CHECKS\s*=\s*1/gi) || []).length;
+  if (disables !== enables) {
+    problems.push(
+      `ORDERING: ${disables} disable(s) of FOREIGN_KEY_CHECKS but ${enables} re-enable(s)`
+    );
+  }
+
   const insertRe = /INSERT INTO `([^`]+)` \(([^)]*)\) VALUES\n([\s\S]*?);\n/g;
   let m;
   while ((m = insertRe.exec(sql))) {
@@ -300,6 +322,12 @@ function main() {
     '',
     'SET NAMES utf8mb4;',
     '',
+    '-- Foreign key checks MUST be off before the first DROP. Dropping a parent',
+    '-- table (User, Product, ...) fails with #1451 while any other table still',
+    '-- references it. They stay off for the inserts too, so table order in the',
+    '-- file does not matter, and are restored at the very end.',
+    'SET FOREIGN_KEY_CHECKS = 0;',
+    '',
   ].join('\n');
 
   const dataSection = [
@@ -307,9 +335,6 @@ function main() {
     '-- ═══════════════════════════════════════════════════════════',
     '-- Demo data',
     '-- ═══════════════════════════════════════════════════════════',
-    '',
-    '-- Constraints are disabled for the inserts so table order does not matter.',
-    'SET FOREIGN_KEY_CHECKS = 0;',
     '',
     dump.blocks.join('\n\n'),
     '',

@@ -1,6 +1,6 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-15T04:12:04.049Z
+-- Generated 2026-09-15T04:15:35.550Z
 -- 23 tables populated with 645 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
@@ -12,6 +12,12 @@
 -- Omitted as operational noise: AuditLog, SearchQuery, PageView
 
 SET NAMES utf8mb4;
+
+-- Foreign key checks MUST be off before the first DROP. Dropping a parent
+-- table (User, Product, ...) fails with #1451 while any other table still
+-- references it. They stay off for the inserts too, so table order in the
+-- file does not matter, and are restored at the very end.
+SET FOREIGN_KEY_CHECKS = 0;
 -- CreateTable
 DROP TABLE IF EXISTS `User`;
 CREATE TABLE `User` (
@@ -615,9 +621,6 @@ ALTER TABLE `Review` ADD CONSTRAINT `Review_customerId_fkey` FOREIGN KEY (`custo
 -- ═══════════════════════════════════════════════════════════
 -- Demo data
 -- ═══════════════════════════════════════════════════════════
-
--- Constraints are disabled for the inserts so table order does not matter.
-SET FOREIGN_KEY_CHECKS = 0;
 
 -- Address: 8 rows
 INSERT INTO `Address` (`id`, `customerId`, `label`, `fullName`, `phone`, `division`, `district`, `area`, `street`, `postcode`, `isDefault`, `createdAt`) VALUES
