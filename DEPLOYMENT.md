@@ -139,13 +139,8 @@ service to sign up for.
 > `Access denied for user 'u123456789_admin'@'::1'`. `127.0.0.1` forces IPv4 and works on every
 > account.
 
-5. Set the provider and create the tables:
-   ```bash
-   node scripts/use-db.js mysql
-   npx prisma db push        # creates the tables
-   npm run db:seed           # optional demo catalogue
-   ```
-5. Commit the schema change and push — Hostinger rebuilds automatically.
+5. Commit the schema change and push — Hostinger rebuilds automatically. (The provider switch and
+   the tables are covered under *Creating the tables* below.)
 
 Your `DATABASE_URL` then looks like this — a single line, with the three values you just noted:
 
@@ -168,6 +163,48 @@ npm run db:check-url -- --build \
   --user u860892017_bdmarket \
   --password 'your-password' \
   --db u860892017_bdmarket
+```
+
+### Creating the tables
+
+Once `DATABASE_URL` is set and `/api/health` reports `schema-not-pushed`, the connection is working
+and only the tables are missing. There are three ways to create them; **the first needs no network
+configuration at all.**
+
+**Option 1 — import via phpMyAdmin (easiest).** Hostinger databases are `localhost`-only, so
+pushing from your own PC needs an allowlist entry first. Importing sidesteps that entirely, because
+phpMyAdmin runs on the server.
+
+1. Generate the SQL (already committed at `prisma/schema.sql`; regenerate after any schema change):
+   ```bash
+   npm run db:sql
+   ```
+2. hPanel → **Databases** → **phpMyAdmin** next to your database.
+3. Select the database in the left sidebar → **Import** tab.
+4. Choose `prisma/schema.sql` → **Go**.
+
+**Option 2 — allow your IP and push from your PC.**
+
+1. hPanel → **Databases** → **Remote MySQL**. Add your public IP (find it at
+   [ipify.org](https://api.ipify.org)) and click **Add**.
+2. That page also shows the **hostname** to connect to, e.g. `srv1517.hstgr.io`. Use it in place of
+   `127.0.0.1`:
+   ```bash
+   DATABASE_URL="mysql://u860892017_bdmarket:PASSWORD@srv1517.hstgr.io:3306/u860892017_bdmarket" npx prisma db push
+   ```
+3. Remove the Remote MySQL entry when you are done — it is not needed by the app, which connects
+   locally.
+
+**Option 3 — SSH onto the server**, where `127.0.0.1` already works:
+```bash
+cd domains/yourdomain.com/hbuilds/current/nodejs
+DATABASE_URL="mysql://user:pass@127.0.0.1:3306/dbname" npx prisma db push
+```
+
+Optionally load the demo catalogue afterwards. Note that `db:seed` also needs a database
+connection, so run it the same way:
+```bash
+DATABASE_URL="..." npm run db:seed
 ```
 
 **If hPanel has no Databases section**, your plan does not include MySQL. In that case connect to  

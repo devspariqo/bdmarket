@@ -20,6 +20,7 @@
     "db:deploy": "prisma generate && prisma db push",
     "db:check-url": "node scripts/check-db-url.js",
     "db:setup": "node scripts/setup-db.js",
+    "db:sql": "prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script > prisma/schema.sql",
     "cache:clear": "node scripts/clear-cache.js",
     "dev:clean": "node scripts/clear-cache.js && next dev -p 3000"
   },
