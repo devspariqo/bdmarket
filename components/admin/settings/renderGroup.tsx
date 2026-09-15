@@ -194,7 +194,9 @@ export async function renderSettingsGroup(group: string) {
         group,
         key,
         value: '',
-        type: 'text',
+        // Match what a seeded row would look like, so the first save writes
+        // `type = 'image'` for an uploader rather than a generic 'text'.
+        type: meta.images?.[key] ? 'image' : 'text',
         label: humaniseKey(key),
         updatedAt: new Date(),
       })),
