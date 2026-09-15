@@ -8,15 +8,19 @@ import {
 import { cn } from '@/lib/utils';
 import { uploadImage } from '@/lib/client-upload';
 import { DEFAULT_PAYMENT_LOGOS, blankPaymentLogo, type PaymentLogo } from '@/lib/payment-logos';
-import { PaymentMark } from '@/components/PaymentMark';
+import { PaymentLogoImage } from '@/components/PaymentLogoImage';
 
 /**
- * Admin manager for the footer's "Accepted Payments" grid.
+ * Admin manager for the footer's "Accepted Payments" grid and the product page's
+ * "Payment Options" block — both read the same list.
  *
  * A repeater rather than a fixed set of fields, so the merchant can add a method
  * that ships later (or remove one they don't accept) without a code change.
- * Order here is the order in the footer grid, which is a 3-column layout — so
- * nine entries fill it exactly.
+ * Order here is the order shown to customers.
+ *
+ * The storefront renders the uploaded artwork and nothing else, so a row without
+ * a logo is hidden rather than falling back to a badge. The rows that will not
+ * appear are flagged below and counted in the header.
  *
  * Saving reuses PATCH /api/admin/settings: the whole list is stored as one JSON
  * value, which already handles cache invalidation and the audit log.
@@ -33,6 +37,8 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const dirty = JSON.stringify(list) !== JSON.stringify(initial);
+  const shown = list.filter((p) => p.logo).length;
+  const hidden = list.length - shown;
 
   function patch(id: string, next: Partial<PaymentLogo>) {
     setList((l) => l.map((p) => (p.id === id ? { ...p, ...next } : p)));
@@ -57,6 +63,24 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
 
   function add() {
     setList((l) => [...l, blankPaymentLogo(l.length)]);
+    setSaved(false);
+  }
+
+  /**
+   * Restore the standard nine methods in their default order.
+   *
+   * Uploaded artwork is carried across by id. Now that the storefront shows
+   * logos and nothing else, a plain reset would silently empty the grid — the
+   * merchant would have to re-upload every file to recover.
+   */
+  function resetToDefaults() {
+    const byId = new Map(list.map((p) => [p.id, p]));
+    setList(
+      DEFAULT_PAYMENT_LOGOS.map((d) => {
+        const existing = byId.get(d.id);
+        return existing ? { ...d, logo: existing.logo } : d;
+      })
+    );
     setSaved(false);
   }
 
@@ -105,15 +129,14 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
       <div className="card flex flex-wrap items-center justify-between gap-3 p-4">
         <div>
           <p className="text-[15px] font-bold text-ink-900">
-            {list.length} method{list.length === 1 ? '' : 's'}
+            {shown} of {list.length} method{list.length === 1 ? '' : 's'} shown
           </p>
           <p className="text-[13px] text-ink-500">
-            The footer grid is 3 columns, so nine methods fill it exactly. Order here is the order
-            shown to customers.
+            Only uploaded logos appear on the storefront. Order here is the order customers see.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => { setList(DEFAULT_PAYMENT_LOGOS); setSaved(false); }} className="btn-outline btn-sm">
+          <button type="button" onClick={resetToDefaults} className="btn-outline btn-sm">
             <RotateCcw className="h-3.5 w-3.5" /> Reset to defaults
           </button>
           <button type="button" onClick={add} className="btn-outline btn-sm">
@@ -141,6 +164,16 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
           <AlertCircle className="h-4 w-4 shrink-0" /> {err}
         </p>
       )}
+      {hidden > 0 && (
+        <p className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-[13px] text-amber-800">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            {hidden} method{hidden === 1 ? ' has' : 's have'} no logo uploaded, so{' '}
+            {hidden === 1 ? 'it is' : 'they are'} not shown to customers. Upload the artwork to
+            include {hidden === 1 ? 'it' : 'them'}.
+          </span>
+        </p>
+      )}
 
       {/* ── Repeater ── */}
       <div className="space-y-3">
@@ -151,10 +184,9 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
               <div className="shrink-0">
                 <div className="flex h-16 w-24 items-center justify-center overflow-hidden rounded-xl border border-ink-200 bg-white p-1.5">
                   {p.logo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.logo} alt="" className="max-h-full max-w-full object-contain" />
+                    <PaymentLogoImage method={p} className="max-h-full max-w-full object-contain" />
                   ) : (
-                    <PaymentMark label={p.label} mark={p.mark} color={p.color} />
+                    <span className="text-[12px] font-medium text-ink-400">No logo</span>
                   )}
                 </div>
                 <div className="mt-2 flex gap-1.5">
@@ -171,7 +203,7 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
                     <button
                       type="button"
                       onClick={() => patch(p.id, { logo: '' })}
-                      title="Remove uploaded logo and use the built-in mark"
+                      title="Remove this logo — the method is then hidden on the storefront"
                       className="btn-sm inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12px] font-semibold text-rose-600 transition hover:bg-rose-50"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -191,55 +223,24 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
               </div>
 
               {/* Fields */}
-              <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="label mb-0">Brand name</label>
-                  <input
-                    value={p.label}
-                    onChange={(e) => patch(p.id, { label: e.target.value })}
-                    placeholder="e.g. bKash"
-                    className="input mt-1 text-[13px]"
-                  />
-                </div>
-                <div>
-                  <label className="label mb-0">Short mark</label>
-                  <input
-                    value={p.mark}
-                    onChange={(e) => patch(p.id, { mark: e.target.value })}
-                    placeholder="e.g. bKash"
-                    maxLength={8}
-                    className="input mt-1 text-[13px]"
-                  />
-                  <p className="mt-1 text-[12px] text-ink-400">
-                    Drawn on the tile when no logo is uploaded. Max 8 characters.
+              <div className="min-w-0 flex-1">
+                <label className="label mb-0">Brand name</label>
+                <input
+                  value={p.label}
+                  onChange={(e) => patch(p.id, { label: e.target.value })}
+                  placeholder="e.g. bKash"
+                  className="input mt-1 text-[13px]"
+                />
+                <p className="mt-1 text-[12px] text-ink-400">
+                  Used as the image&rsquo;s alt text and its hover tooltip. It is not printed next
+                  to the logo.
+                </p>
+                {!p.logo && (
+                  <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-[12px] font-semibold text-amber-700">
+                    <AlertCircle className="h-3.5 w-3.5" /> Hidden on the storefront until a logo is
+                    uploaded
                   </p>
-                </div>
-                <div>
-                  <label className="label mb-0">Brand colour</label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={p.color}
-                      onChange={(e) => patch(p.id, { color: e.target.value })}
-                      className="color-swatch h-9 w-12"
-                      aria-label={`Colour for ${p.label || 'this method'}`}
-                    />
-                    <input
-                      value={p.color}
-                      onChange={(e) => patch(p.id, { color: e.target.value })}
-                      className="input font-mono text-[13px]"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="label mb-0">Caption <span className="font-normal text-ink-400">(optional)</span></label>
-                  <input
-                    value={p.note || ''}
-                    onChange={(e) => patch(p.id, { note: e.target.value })}
-                    placeholder="e.g. Up to ৳10,000"
-                    className="input mt-1 text-[13px]"
-                  />
-                </div>
+                )}
               </div>
 
               {/* Reorder + delete */}
@@ -283,51 +284,34 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
             <ImageIcon className="mx-auto mb-3 h-8 w-8 text-ink-300" />
             <p className="text-[15px] font-semibold text-ink-700">No payment methods</p>
             <p className="mt-1 text-[13px] text-ink-500">
-              The footer grid will be hidden until you add at least one.
+              The footer grid will be hidden until you add at least one with a logo.
             </p>
           </div>
         )}
       </div>
 
-      {/* ── Live 3×3 preview ── */}
+      {/* ── Live preview — mirrors the storefront exactly ── */}
       <div className="card p-5">
-        <h2 className="font-display text-base font-bold text-ink-900">Footer preview</h2>
+        <h2 className="font-display text-base font-bold text-ink-900">Storefront preview</h2>
         <p className="mb-4 text-[13px] text-ink-500">
-          Exactly how the grid renders in the storefront footer (dark background).
+          Exactly how the grid renders in the storefront footer (dark background) and on the product
+          page. Only methods with an uploaded logo appear.
         </p>
         <div className="rounded-2xl bg-ink-900 p-5">
-          <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-ink-500">
+          <p className="mb-3 text-[12px] font-semibold uppercase tracking-wider text-white">
             Accepted Payments
           </p>
-          <div className="grid grid-cols-3 gap-2.5">
-            {list.map((p) => (
-              <div
-                key={p.id}
-                className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-white/12 bg-white px-2 py-3"
-                title={p.label}
-              >
-                <div className="flex h-8 items-center justify-center">
-                  {p.logo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.logo} alt="" className="max-h-8 max-w-full object-contain" />
-                  ) : (
-                    <PaymentMark label={p.label} mark={p.mark} color={p.color} small />
-                  )}
+          {shown > 0 ? (
+            <div className="grid grid-cols-3 items-center gap-x-3 gap-y-4">
+              {list.filter((p) => p.logo).map((p) => (
+                <div key={p.id} className="flex h-10 items-center justify-center" title={p.label}>
+                  <PaymentLogoImage method={p} className="max-h-10 max-w-full object-contain" />
                 </div>
-                <span className="w-full truncate text-center text-[11px] font-semibold text-ink-600">
-                  {p.label}
-                </span>
-              </div>
-            ))}
-            {/* Pad the preview so a partial row still shows the 3-column rhythm */}
-            {Array.from({ length: (3 - (list.length % 3)) % 3 }).map((_, i) => (
-              <div
-                key={`pad-${i}`}
-                className="rounded-xl border border-dashed border-white/12 py-3"
-                aria-hidden="true"
-              />
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-[13px] text-white">Payment logos are uploaded in the admin panel.</p>
+          )}
         </div>
       </div>
     </div>

@@ -47,12 +47,13 @@ async function safeMenu(location: string) {
 }
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const [config, cartCount, customer, nav, paymentLogos, footer1, footer2, footer3] =
+  const [config, cartCount, customer, nav, mobileNav, paymentLogos, footer1, footer2, footer3] =
     await Promise.all([
       getSiteConfig(),
       getCartCount(),
       getCustomerSession(),
       safeMenu('header'),
+      safeMenu('mobile'),
       getPaymentLogos(),
       safeMenu('footer-1'),
       safeMenu('footer-2'),
@@ -108,7 +109,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <div className="flex min-h-screen flex-col">
-        <Header nav={nav} config={config} cartCount={cartCount} customer={customer} />
+        <Header nav={nav} mobileNav={mobileNav} config={config} cartCount={cartCount} customer={customer} />
         <main className="flex-1 pb-16 lg:pb-0">{children}</main>
         <Footer
           config={config}

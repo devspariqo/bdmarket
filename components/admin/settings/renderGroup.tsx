@@ -24,6 +24,11 @@ type Meta = {
 /** Keys that should always be treated as colours, regardless of group. */
 const COLOR_KEY = /(^|_)(color|colour|hex)(_|$)/i;
 
+/** `footer_logo` → `Footer Logo`, for keys that have no Setting row yet. */
+function humaniseKey(key: string) {
+  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export const SETTINGS_META: Record<string, Meta> = {
   general: {
     title: 'General Settings',
@@ -34,6 +39,8 @@ export const SETTINGS_META: Record<string, Meta> = {
         'Shown in the storefront header, the footer and the admin sidebar. When set, it replaces the site name text. A transparent PNG, WebP or SVG works best; wide logos display around 190px.',
       site_favicon:
         'The little icon in the browser tab and on the phone home screen. Upload a square PNG or SVG at least 256×256 — it appears immediately after saving, no rebuild needed. Leave empty to use the built-in BD Market icon.',
+      footer_logo:
+        'The logo for the site footer, which sits on a near-black background. Upload a light-on-dark or transparent version of your logo here — the header logo is usually dark ink on white and can vanish against the footer. Leave empty to reuse the main logo.',
       store_whatsapp: 'Include the country code, e.g. +8801700000000. Used for the floating chat button.',
       maintenance_mode: 'When on, the storefront shows a maintenance notice. Admin stays accessible.',
     },
@@ -43,6 +50,8 @@ export const SETTINGS_META: Record<string, Meta> = {
       site_logo: { maxWidth: 600, previewClassName: 'h-20' },
       // Square by nature — 256 covers the 180px apple-touch and 512 manifest sizes.
       site_favicon: { maxWidth: 512, accept: 'image/png,image/webp,image/jpeg,image/svg+xml,.svg,image/*', previewClassName: 'h-20' },
+      // Matches site_logo: the footer renders it at <=180px.
+      footer_logo: { maxWidth: 600, previewClassName: 'h-20' },
     },
   },
   store: {
@@ -163,7 +172,35 @@ export async function renderSettingsGroup(group: string) {
   const rows = await getSettingsGroup(group);
   if (!rows.length) notFound();
 
-  const fields = rows.map((r) => ({
+  /**
+   * Uploaders and colour pickers declared in `meta` that have no Setting row.
+   *
+   * A key added to this file after an install was seeded (such as
+   * `footer_logo`) exists only in code, so without this the field would be
+   * invisible until the database was re-seeded — which is not something we can
+   * ask of a live deployment. `SettingsForm` posts every field it renders and
+   * the settings API upserts by key, so the first save creates the row.
+   *
+   * Sorted by key alongside the real rows so a synthetic field sits exactly
+   * where it would if it had been seeded.
+   */
+  const declared = [...Object.keys(meta.images ?? {}), ...(meta.colors ?? [])];
+  const allRows = [
+    ...rows,
+    ...declared
+      .filter((key) => !rows.some((r) => r.key === key))
+      .map((key) => ({
+        id: `virtual-${group}-${key}`,
+        group,
+        key,
+        value: '',
+        type: 'text',
+        label: humaniseKey(key),
+        updatedAt: new Date(),
+      })),
+  ].sort((a, b) => a.key.localeCompare(b.key));
+
+  const fields = allRows.map((r) => ({
     key: r.key,
     value: r.value,
     type: r.type,

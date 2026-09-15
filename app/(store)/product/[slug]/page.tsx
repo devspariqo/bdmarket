@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Truck, ShieldCheck, RotateCcw, Minus, Check, Package } from 'lucide-react';
 import prisma from '@/lib/db';
 import { getSiteConfig, getPaymentLogos } from '@/lib/settings';
+import { uploadedPaymentLogos } from '@/lib/payment-logos';
 import { formatPrice, discountPercent, parseJSON, pageTitle } from '@/lib/utils';
 import ProductDetailClient from '@/components/store/ProductDetailClient';
 import ProductCard, { Stars } from '@/components/store/ProductCard';
@@ -11,7 +12,7 @@ import ProductTabs from '@/components/store/ProductTabs';
 import ProductDescription from '@/components/store/ProductDescription';
 import ProductSpecs from '@/components/store/ProductSpecs';
 import ProductReviews from '@/components/store/ProductReviews';
-import { PaymentBadge } from '@/components/PaymentMark';
+import { PaymentLogoImage } from '@/components/PaymentLogoImage';
 
 /**
  * Rendered on demand — never prerendered.
@@ -84,6 +85,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 export default async function ProductPage({ params }: { params: { slug: string } }) {
   const config = await getSiteConfig();
   const paymentLogos = await getPaymentLogos();
+  // Logos only: a method with no artwork uploaded has nothing to draw, so it is
+  // dropped rather than leaving an empty cell. Nine fills the 3-column grid.
+  const payments = uploadedPaymentLogos(paymentLogos).slice(0, 9);
 
   const product = await prisma.product.findUnique({
     where: { slug: params.slug },
@@ -437,26 +441,24 @@ export default async function ProductPage({ params }: { params: { slug: string }
 
                 <div className="rounded-2xl border border-ink-200 bg-white p-5">
                   <h3 className="mb-3 text-[15px] font-bold text-ink-900">Payment Options</h3>
-                  {/* Same source as the footer grid, so the two never disagree. */}
-                  <ul className="grid grid-cols-3 gap-2">
-                    {paymentLogos.slice(0, 9).map((m) => (
-                      <li
-                        key={m.id}
-                        title={m.label}
-                        className="flex flex-col items-center justify-center gap-1 rounded-lg border border-ink-200 bg-ink-50/60 px-1 py-2"
-                      >
-                        <span className="flex h-6 items-center justify-center">
-                          <PaymentBadge
+                  {/* Same source as the footer grid, so the two never disagree.
+                      Logos only — no brand name, colour swatch, caption or card. */}
+                  {payments.length > 0 ? (
+                    <ul className="grid grid-cols-3 items-center gap-x-3 gap-y-4">
+                      {payments.map((m) => (
+                        <li key={m.id} title={m.label} className="flex h-8 items-center justify-center">
+                          <PaymentLogoImage
                             method={m}
-                            imgClassName="max-h-6 max-w-full object-contain"
+                            className="max-h-8 max-w-full object-contain"
                           />
-                        </span>
-                        <span className="w-full truncate text-center text-[10px] font-semibold text-ink-600">
-                          {m.label}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[13px] text-ink-500">
+                      Payment logos are uploaded in the admin panel.
+                    </p>
+                  )}
                 </div>
               </aside>
             </div>

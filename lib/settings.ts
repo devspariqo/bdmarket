@@ -96,6 +96,13 @@ export async function getSiteConfig() {
     siteNameBn: s.site_name_bn || 'বিডি মার্কেট',
     tagline: s.site_tagline || 'Bangladesh\'s Fashion & Lifestyle Store',
     logo: s.site_logo || '',
+    /**
+     * The footer sits on `bg-ink-900`, so the header logo — usually dark ink on
+     * white — can disappear against it. `footer_logo` is an optional dark-theme
+     * variant; when it is not set we fall back to the main logo so a single-logo
+     * store keeps working unchanged.
+     */
+    footerLogo: s.footer_logo || s.site_logo || '',
     favicon: s.site_favicon || '',
     siteUrl: s.site_url || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     email: s.store_email || 'support@bdmarket.com.bd',

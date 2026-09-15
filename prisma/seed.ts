@@ -479,6 +479,9 @@ async function main() {
     { group: 'general', key: 'site_name_bn', value: 'বিডি মার্কেট', type: 'text', label: 'Site Name (Bangla)' },
     { group: 'general', key: 'site_tagline', value: "Bangladesh's Fashion & Lifestyle Store", type: 'text', label: 'Tagline' },
     { group: 'general', key: 'site_logo', value: '', type: 'image', label: 'Logo URL' },
+    // Optional dark-theme variant for the footer, which sits on a near-black
+    // background. Empty means "reuse the main logo".
+    { group: 'general', key: 'footer_logo', value: '', type: 'image', label: 'Footer Logo URL' },
     { group: 'general', key: 'site_favicon', value: '/favicon.svg', type: 'image', label: 'Favicon URL' },
     { group: 'general', key: 'site_url', value: 'http://localhost:3000', type: 'text', label: 'Site URL' },
     { group: 'general', key: 'store_email', value: 'support@bdmarket.com.bd', type: 'text', label: 'Support Email' },

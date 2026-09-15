@@ -19,9 +19,10 @@ export default async function Page() {
           Payment Logos
         </h1>
         <p className="mt-1 max-w-3xl text-[15px] text-ink-500">
-          The brand logos shown in the footer&rsquo;s &ldquo;Accepted Payments&rdquo; grid. Upload the
-          official artwork for each method — until you do, a clean typographic badge in the brand
-          colour is used instead, so the grid never looks broken.
+          The brand logos shown in the footer&rsquo;s &ldquo;Accepted Payments&rdquo; grid and on the
+          product page&rsquo;s &ldquo;Payment Options&rdquo; block. Upload the official artwork for each
+          method &mdash; a method with no logo uploaded is hidden rather than replaced by a
+          placeholder, so customers only ever see real brand marks.
         </p>
       </header>
 

@@ -5,36 +5,35 @@
  * group) rather than one row per brand, so the merchant can add, remove and
  * reorder methods without a schema change.
  *
- * Every entry carries a built-in typographic fallback mark, so the footer grid
- * looks deliberate before any logo has been uploaded — and stays intact if an
- * uploaded file is later deleted.
+ * The storefront renders the uploaded artwork and *nothing else* — no brand
+ * name, no coloured fallback badge, no card around it. A method with no `logo`
+ * therefore has nothing to draw and is skipped, which is why the admin flags
+ * those rows instead of pretending they will show up.
+ *
+ * Entries saved by an earlier version also carry `color`, `mark` and `note`.
+ * Those keys are ignored on read and no longer written, so an existing
+ * `payment_logos` value keeps parsing without a migration.
  */
 
 export type PaymentLogo = {
   /** Stable id, used as the React key and for reordering. */
   id: string;
-  /** Brand name shown under the mark, e.g. "bKash". */
+  /** Brand name. Becomes the image's alt text and the hover tooltip. */
   label: string;
-  /** Uploaded logo URL. Empty means "render the built-in mark". */
+  /** Uploaded logo URL. Empty means "not rendered on the storefront". */
   logo: string;
-  /** Brand colour for the built-in mark and the tile accent. */
-  color: string;
-  /** Text drawn in the built-in mark (kept short — it sits in a small tile). */
-  mark: string;
-  /** Optional caption, e.g. "Up to ৳10,000". */
-  note?: string;
 };
 
 export const DEFAULT_PAYMENT_LOGOS: PaymentLogo[] = [
-  { id: 'bkash', label: 'bKash', logo: '', color: '#e2136e', mark: 'bKash' },
-  { id: 'nagad', label: 'Nagad', logo: '', color: '#f58220', mark: 'Nagad' },
-  { id: 'rocket', label: 'Rocket', logo: '', color: '#8c3494', mark: 'Rocket' },
-  { id: 'upay', label: 'Upay', logo: '', color: '#e8112d', mark: 'upay' },
-  { id: 'sslcommerz', label: 'SSLCommerz', logo: '', color: '#1b9ad6', mark: 'SSL' },
-  { id: 'visa', label: 'Visa', logo: '', color: '#1a1f71', mark: 'VISA' },
-  { id: 'mastercard', label: 'Mastercard', logo: '', color: '#eb001b', mark: 'MC' },
-  { id: 'amex', label: 'American Express', logo: '', color: '#006fcf', mark: 'AMEX' },
-  { id: 'cod', label: 'Cash on Delivery', logo: '', color: '#334155', mark: 'COD' },
+  { id: 'bkash', label: 'bKash', logo: '' },
+  { id: 'nagad', label: 'Nagad', logo: '' },
+  { id: 'rocket', label: 'Rocket', logo: '' },
+  { id: 'upay', label: 'Upay', logo: '' },
+  { id: 'sslcommerz', label: 'SSLCommerz', logo: '' },
+  { id: 'visa', label: 'Visa', logo: '' },
+  { id: 'mastercard', label: 'Mastercard', logo: '' },
+  { id: 'amex', label: 'American Express', logo: '' },
+  { id: 'cod', label: 'Cash on Delivery', logo: '' },
 ];
 
 /** Sensible defaults for a brand-new method added by hand. */
@@ -43,8 +42,6 @@ export function blankPaymentLogo(index: number): PaymentLogo {
     id: `custom-${Date.now()}-${index}`,
     label: '',
     logo: '',
-    color: '#334155',
-    mark: '',
   };
 }
 
@@ -57,16 +54,12 @@ function coerce(raw: any): PaymentLogo | null {
     id: typeof raw.id === 'string' && raw.id ? raw.id : `p-${Math.random().toString(36).slice(2, 9)}`,
     label: label || 'Payment',
     logo,
-    color: /^#[0-9a-f]{3,8}$/i.test(raw.color) ? raw.color : '#334155',
-    // Derive a mark from the label so a hand-added method still renders nicely.
-    mark: (typeof raw.mark === 'string' && raw.mark.trim()) || label.slice(0, 6),
-    note: typeof raw.note === 'string' && raw.note.trim() ? raw.note.trim() : undefined,
   };
 }
 
 /**
  * Parse the stored JSON. Returns the defaults when nothing has been saved yet,
- * so a fresh install shows a populated grid rather than an empty one.
+ * so a fresh install shows a populated editor rather than an empty one.
  */
 export function parsePaymentLogos(raw: string | null | undefined): PaymentLogo[] {
   if (!raw) return DEFAULT_PAYMENT_LOGOS;
@@ -83,6 +76,17 @@ export function parsePaymentLogos(raw: string | null | undefined): PaymentLogo[]
 
 export function serializePaymentLogos(list: PaymentLogo[]): string {
   return JSON.stringify(list);
+}
+
+/**
+ * Only the methods that have artwork uploaded.
+ *
+ * The storefront renders logos and nothing else, so a method with an empty
+ * `logo` would occupy a grid cell and draw nothing. Filtering here keeps that
+ * decision in one place instead of at each call site.
+ */
+export function uploadedPaymentLogos(list: PaymentLogo[]): PaymentLogo[] {
+  return list.filter((m) => Boolean(m.logo));
 }
 
 /** The settings key + group this feature is stored under. */

@@ -12,11 +12,40 @@ type MenuItem = { label: string; labelBn?: string; href: string; children?: { la
 type Menu = { id: string; name: string; location: string; status: string; items: MenuItem[] };
 type Source = { label: string; href: string; children?: { label: string; href: string }[] };
 
+/** `items` comes back from the API as a JSON string. Tolerate either shape. */
+function parseMenuItems(raw: unknown): MenuItem[] {
+  if (Array.isArray(raw)) return raw as MenuItem[];
+  if (typeof raw !== 'string') return [];
+  try {
+    const v = JSON.parse(raw);
+    return Array.isArray(v) ? v : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Every menu location the storefront actually reads.
+ *
+ * This list is the single source of truth and must stay in step with the
+ * `safeMenu(...)` calls in `app/(store)/layout.tsx`. Two things were wrong here
+ * before and both made a saved menu look like it had been ignored:
+ *
+ *   - `footer-1` and `footer-2` were labelled the wrong way round. `Footer.tsx`
+ *     renders `footer-1` under the **Support** heading and `footer-2` under
+ *     **Shop**, matching the seeded names ("Customer Service" / "Shop Links"),
+ *     so editing "Footer — Shop" appeared under "Support" on the live site.
+ *   - `footer-3` was missing entirely, even though the footer renders it in the
+ *     bottom bar beside the copyright line. There was no way to edit those links.
+ *
+ * `name` is only the record's label in the admin — the storefront never prints it.
+ */
 const LOCATIONS = [
-  { key: 'header', label: 'Header — main navigation', hint: 'Shown in the sticky header with mega-dropdown' },
-  { key: 'mobile', label: 'Mobile drawer menu', hint: 'Used inside the hamburger drawer on phones' },
-  { key: 'footer-1', label: 'Footer — Shop', hint: 'First footer column' },
-  { key: 'footer-2', label: 'Footer — Help', hint: 'Second footer column' },
+  { key: 'header', label: 'Header — main navigation', hint: 'Shown in the sticky header with mega-dropdown', name: 'Main Navigation' },
+  { key: 'mobile', label: 'Mobile drawer menu', hint: 'The hamburger drawer on phones. Falls back to the header menu while empty.', name: 'Mobile Menu' },
+  { key: 'footer-1', label: 'Footer — Support column', hint: 'Rendered under the "Support" heading', name: 'Customer Service' },
+  { key: 'footer-2', label: 'Footer — Shop column', hint: 'Rendered under the "Shop" heading', name: 'Shop Links' },
+  { key: 'footer-3', label: 'Footer — bottom bar', hint: 'Small links beside the copyright line', name: 'Legal' },
 ];
 
 export default function MenuBuilder({
@@ -27,7 +56,9 @@ export default function MenuBuilder({
   linkSources: { categories: Source[]; pages: Source[]; static: Source[] };
 }) {
   const router = useRouter();
-  const [active, setActive] = useState(menus[0]?.location || 'header');
+  // Open on the header menu rather than `menus[0]`, which is whatever the
+  // database returns first (alphabetically `footer-1`).
+  const [active, setActive] = useState('header');
   const [drafts, setDrafts] = useState<Record<string, MenuItem[]>>(
     Object.fromEntries(menus.map((m) => [m.location, m.items]))
   );
@@ -38,9 +69,19 @@ export default function MenuBuilder({
 
   const current = menus.find((m) => m.location === active);
   const items = drafts[active] || [];
+  const location = LOCATIONS.find((l) => l.key === active) ?? LOCATIONS[0];
 
+  /**
+   * A location with no Menu row yet is still saveable.
+   *
+   * `POST /api/admin/menus` upserts on `location`, so the first save creates the
+   * row. This used to return `false` whenever `current` was undefined, which
+   * disabled the Save button and made a fresh location — `mobile`, or any of the
+   * footer columns on a store seeded before they existed — impossible to create
+   * from the UI. The panel said "not created yet" and then refused to create it.
+   */
   const dirty = useMemo(() => {
-    if (!current) return false;
+    if (!current) return items.length > 0;
     return JSON.stringify(current.items) !== JSON.stringify(items);
   }, [current, items]);
 
@@ -73,7 +114,6 @@ export default function MenuBuilder({
   }
 
   async function save() {
-    if (!current) return;
     setSaving(true);
     setErr('');
     try {
@@ -81,10 +121,12 @@ export default function MenuBuilder({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: current.id,
-          name: current.name,
-          location: current.location,
-          status: current.status,
+          // Only send an id when the row already exists — without one the API
+          // upserts on `location`, which is what creates a missing menu.
+          ...(current ? { id: current.id } : {}),
+          name: current?.name || location.name,
+          location: active,
+          status: current?.status || 'active',
           items,
         }),
       });
@@ -92,6 +134,12 @@ export default function MenuBuilder({
       if (!res.ok) throw new Error(data.error || 'Failed to save');
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
+      // Adopt exactly what the server stored, so a create turns into an update
+      // on the next save and the editor does not drift from the database.
+      if (data.menu) {
+        const stored = parseMenuItems(data.menu.items);
+        setDrafts((p) => ({ ...p, [active]: stored }));
+      }
       router.refresh();
     } catch (e: any) {
       setErr(e.message);

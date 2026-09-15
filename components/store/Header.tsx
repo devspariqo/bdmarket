@@ -12,9 +12,11 @@ import { formatPrice } from '@/lib/utils';
 type NavItem = { label: string; labelBn?: string; href: string; children?: NavItem[] };
 
 export default function Header({
-  nav, config, cartCount = 0, customer,
+  nav, mobileNav, config, cartCount = 0, customer,
 }: {
   nav: NavItem[];
+  /** Optional dedicated drawer menu. Falls back to `nav` when empty. */
+  mobileNav?: NavItem[];
   config: any;
   cartCount?: number;
   customer?: { name: string } | null;
@@ -26,6 +28,15 @@ export default function Header({
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  /**
+   * The drawer prefers a menu built for phones and falls back to the header nav.
+   *
+   * A separate `mobile` menu used to be offered in the admin but read by nothing,
+   * so anything built there had no effect on the storefront. Falling back keeps
+   * single-menu stores working without requiring a second menu to be built.
+   */
+  const drawerNav = mobileNav?.length ? mobileNav : nav;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -302,7 +313,7 @@ export default function Header({
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-3">
-              {nav.map((item) => (
+              {drawerNav.map((item) => (
                 <div key={item.href}>
                   {item.children ? (
                     <>
