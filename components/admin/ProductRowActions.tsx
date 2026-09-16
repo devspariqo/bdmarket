@@ -50,7 +50,7 @@ export default function ProductRowActions({
         href={`/product/${slug}`}
         target="_blank"
         className="rounded-lg p-2 text-ink-500 transition hover:bg-ink-100 hover:text-ink-800"
-        title="View on storefront"
+        title="View on website"
       >
         <Eye className="h-3.5 w-3.5" />
       </Link>

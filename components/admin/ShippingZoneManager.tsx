@@ -61,7 +61,7 @@ export default function ShippingZoneManager({ zones, settings }: { zones: Zone[]
   const [savingDefaults, setSavingDefaults] = useState(false);
   const [defaultsSaved, setDefaultsSaved] = useState(false);
 
-  useMemo(() => setList(zones), [zones]);
+  useEffect(() => setList(zones), [zones]);
   useEffect(() => {
     setDefaults(Object.fromEntries(settings.map((s) => [s.key, s.value])));
   }, [settings]);

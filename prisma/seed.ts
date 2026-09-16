@@ -552,6 +552,15 @@ async function main() {
     { group: 'appearance', key: 'announcement_text', value: 'ফ্রি ডেলিভারি ৳২০০০+ অর্ডারে • সারা বাংলাদেশে ক্যাশ অন ডেলিভারি • হটলাইন ০১৭০০-০০০০০০', type: 'text', label: 'Announcement Text' },
     { group: 'appearance', key: 'show_whatsapp_float', value: 'true', type: 'boolean', label: 'Show WhatsApp Float Button' },
 
+    // Homepage hero copy (the banner image and buttons come from Banner rows)
+    { group: 'homepage', key: 'hero_heading', value: 'Authentic Bangladeshi Fashion, Delivered Nationwide', type: 'text', label: 'Hero Headline' },
+    { group: 'homepage', key: 'hero_stat_1_value', value: '64', type: 'text', label: 'Stat 1 — Figure' },
+    { group: 'homepage', key: 'hero_stat_1_label', value: 'Districts Delivered', type: 'text', label: 'Stat 1 — Caption' },
+    { group: 'homepage', key: 'hero_stat_2_value', value: '24K+', type: 'text', label: 'Stat 2 — Figure' },
+    { group: 'homepage', key: 'hero_stat_2_label', value: 'Happy Customers', type: 'text', label: 'Stat 2 — Caption' },
+    { group: 'homepage', key: 'hero_stat_3_value', value: '4.8★', type: 'text', label: 'Stat 3 — Figure' },
+    { group: 'homepage', key: 'hero_stat_3_label', value: 'Average Rating', type: 'text', label: 'Stat 3 — Caption' },
+
     // Reviews
     { group: 'reviews', key: 'reviews_enabled', value: 'true', type: 'boolean', label: 'Enable Product Reviews' },
     { group: 'reviews', key: 'reviews_auto_approve', value: 'false', type: 'boolean', label: 'Auto-approve Reviews' },

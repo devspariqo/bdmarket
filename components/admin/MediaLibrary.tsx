@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Check, Copy, File, Image as ImageIcon, Link2, Loader2, Search, Trash2, Upload, X,
@@ -38,7 +38,16 @@ export default function MediaLibrary({ initial }: { initial: Media[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [preview, setPreview] = useState<Media | null>(null);
 
-  useMemo(() => setList(initial), [initial]);
+  /**
+   * Re-sync when the server sends a fresh list (after `router.refresh()`).
+   *
+   * This was `useMemo(() => setList(initial), [initial])`, which calls a state
+   * setter during render. That is not what `useMemo` is for: the server component
+   * passes a freshly-mapped array every time, so the dependency changed on each
+   * refresh and React re-rendered in a loop until the error boundary caught it —
+   * which is the "Something went wrong" the admin saw after a successful upload.
+   */
+  useEffect(() => setList(initial), [initial]);
 
   const filtered = useMemo(() => {
     let out = list;

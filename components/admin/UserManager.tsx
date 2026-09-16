@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, KeyRound, Loader2, Lock, Pencil, Plus, Search, ShieldCheck,
@@ -47,8 +47,7 @@ export default function UserManager({ users, currentUserId }: { users: U[]; curr
   const [err, setErr] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useMemo(() => setList(users), [users]);
-
+  useEffect(() => setList(users), [users]);
   const filtered = useMemo(() => {
     if (!search.trim()) return list;
     const q = search.toLowerCase();

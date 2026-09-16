@@ -15,12 +15,12 @@ import {
  * plain text box was not good enough:
  * - it accepted `red`, `#00`, `006a4e` and silently saved whatever was typed,
  *   which then got interpolated into CSS and broke the palette;
- * - it showed no hint of what the colour would actually do to the storefront;
+ * - it showed no hint of what the colour would actually do to the website;
  * - it was impossible to use on a phone.
  *
  * This control is valid-by-construction: every interaction path produces a
  * normalised `#rrggbb`, and the ramp preview is generated with the exact same
- * `buildRamp()` the storefront injector uses, so what you see is what ships.
+ * `buildRamp()` the website injector uses, so what you see is what ships.
  */
 export default function ColorPickerField({
   value,
@@ -278,10 +278,10 @@ export default function ColorPickerField({
         </div>
       </div>
 
-      {/* ── Live storefront preview ── */}
+      {/* ── Live website preview ── */}
       <div className="p-3.5">
         <p className="mb-2 text-[12px] font-bold uppercase tracking-wide text-ink-400">
-          Storefront preview
+          Website preview
         </p>
 
         <div className="rounded-xl border border-ink-200 bg-ink-50/50 p-3">

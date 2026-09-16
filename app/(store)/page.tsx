@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, TrendingUp, Tag, Zap, Truck, ShieldCheck } from '
 import prisma from '@/lib/db';
 import { getSiteConfig } from '@/lib/settings';
 import ProductCard from '@/components/store/ProductCard';
-import { parseJSON, formatPrice } from '@/lib/utils';
+import { parseJSON, formatPrice, cn } from '@/lib/utils';
 
 export const revalidate = 60;
 
@@ -84,7 +84,7 @@ export default async function HomePage() {
                   {hero[0]?.title || 'Eid Collection 2026'}
                 </span>
                 <h1 className="max-w-xl font-display text-[28px] font-bold leading-[1.15] tracking-tight text-white sm:text-4xl lg:text-[52px]">
-                  Authentic Bangladeshi Fashion, Delivered Nationwide
+                  {config.homepage.heroHeading}
                 </h1>
                 <p className="bn mt-4 max-w-lg text-[15px] leading-relaxed text-ink-200 sm:text-base">
                   {hero[0]?.subtitle || 'হাতে বোনা জামদানি থেকে ফেস্টিভ পাঞ্জাবি — সারা বাংলাদেশে ক্যাশ অন ডেলিভারি।'}
@@ -115,18 +115,18 @@ export default async function HomePage() {
                   </span>
                 </div>
 
-                <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-white">
-                  {[
-                    { n: '64', l: 'Districts Delivered' },
-                    { n: '24K+', l: 'Happy Customers' },
-                    { n: '4.8★', l: 'Average Rating' },
-                  ].map((s) => (
-                    <div key={s.l}>
-                      <p className="font-display text-2xl font-bold">{s.n}</p>
-                      <p className="text-[13px] text-ink-300">{s.l}</p>
-                    </div>
-                  ))}
-                </div>
+                {/* Figures are editable at Settings -> Homepage. A stat whose
+                    figure is emptied there is dropped from the row. */}
+                {config.homepage.heroStats.length > 0 && (
+                  <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-white">
+                    {config.homepage.heroStats.map((s) => (
+                      <div key={s.label}>
+                        <p className="font-display text-2xl font-bold">{s.value}</p>
+                        <p className="text-[13px] text-ink-300">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -271,8 +271,23 @@ export default async function HomePage() {
                   href={`/brand/${b.slug}`}
                   className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-ink-200 bg-white px-3 py-5 text-center transition hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-soft"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 font-display text-base font-bold text-brand-700">
-                    {b.name.charAt(0)}
+                  {/* The brand's uploaded logo when it has one, otherwise its
+                      initial. This used to draw the initial unconditionally, so
+                      a logo set in the admin never appeared here. */}
+                  <span
+                    className={cn(
+                      'flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl',
+                      b.logo
+                        ? 'border border-ink-100 bg-white p-1'
+                        : 'bg-brand-50 font-display text-base font-bold text-brand-700'
+                    )}
+                  >
+                    {b.logo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={b.logo} alt={b.name} className="h-full w-full object-contain" loading="lazy" />
+                    ) : (
+                      b.name.charAt(0)
+                    )}
                   </span>
                   <span className="text-[12px] font-semibold leading-tight text-ink-700">{b.name}</span>
                 </Link>

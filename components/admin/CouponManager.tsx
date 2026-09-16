@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, Copy, Loader2, Lock, Pencil, Plus, Search, Ticket, Trash2, X,
@@ -53,8 +53,7 @@ export default function CouponManager({ initial }: { initial: Coupon[] }) {
   const [err, setErr] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useMemo(() => setCoupons(initial), [initial]);
-
+  useEffect(() => setCoupons(initial), [initial]);
   const list = useMemo(() => {
     if (!search.trim()) return coupons;
     const q = search.toLowerCase();

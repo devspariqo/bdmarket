@@ -85,6 +85,7 @@ export default function AdminShell({
         { href: '/admin/settings/general', icon: Store, label: 'General' },
         { href: '/admin/settings/store', icon: Monitor, label: 'Store' },
         { href: '/admin/settings/appearance', icon: Palette, label: 'Appearance' },
+        { href: '/admin/settings/homepage', icon: Megaphone, label: 'Homepage' },
         { href: '/admin/settings/seo', icon: Globe, label: 'SEO' },
         { href: '/admin/settings/checkout', icon: CreditCard, label: 'Checkout' },
         { href: '/admin/settings/payments', icon: Percent, label: 'Payment Settings' },
@@ -208,7 +209,7 @@ export default function AdminShell({
           )}
         >
           <ExternalLink className="h-4 w-4 shrink-0 text-ink-400" />
-          {!collapsed && 'View Storefront'}
+          {!collapsed && 'View Website'}
         </Link>
       </div>
     </nav>
@@ -320,7 +321,7 @@ export default function AdminShell({
                         <Settings className="h-4 w-4 text-ink-400" /> Store Settings
                       </Link>
                       <Link href="/" target="_blank" className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-ink-700 transition hover:bg-ink-50">
-                        <ExternalLink className="h-4 w-4 text-ink-400" /> View Storefront
+                        <ExternalLink className="h-4 w-4 text-ink-400" /> View Website
                       </Link>
                       <button
                         onClick={logout}

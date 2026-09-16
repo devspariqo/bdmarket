@@ -121,7 +121,9 @@ export default async function StoreLayout({ children }: { children: React.ReactN
           }}
         />
         <MobileBottomNav cartCount={cartCount} customer={customer} />
-        <WhatsAppFloat phone={config.whatsapp} siteName={config.siteName} />
+        {config.appearance.showWhatsappFloat && (
+          <WhatsAppFloat phone={config.whatsapp} siteName={config.siteName} />
+        )}
       </div>
     </>
   );

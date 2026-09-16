@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -60,8 +60,7 @@ export default function PageManager({ pages }: { pages: Page[] }) {
   const [err, setErr] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useMemo(() => setList(pages), [pages]);
-
+  useEffect(() => setList(pages), [pages]);
   const filtered = useMemo(() => {
     if (!search.trim()) return list;
     const q = search.toLowerCase();

@@ -47,13 +47,13 @@ export const SETTINGS_META: Record<string, Meta> = {
     hints: {
       site_url: 'Used for canonical URLs, sitemap and structured data. Update this before going live.',
       site_logo:
-        'Shown in the storefront header, the footer and the admin sidebar. When set, it replaces the site name text. A transparent PNG, WebP or SVG works best; wide logos display around 190px.',
+        'Shown in the website header, the footer and the admin sidebar. When set, it replaces the site name text. A transparent PNG, WebP or SVG works best; wide logos display around 190px.',
       site_favicon:
         'The little icon in the browser tab and on the phone home screen. Upload a square PNG or SVG at least 256×256 — it appears immediately after saving, no rebuild needed. Leave empty to use the built-in BD Market icon.',
       footer_logo:
         'The logo for the site footer, which sits on a near-black background. Upload a light-on-dark or transparent version of your logo here — the header logo is usually dark ink on white and can vanish against the footer. Leave empty to reuse the main logo.',
       store_whatsapp: 'Include the country code, e.g. +8801700000000. Used for the floating chat button.',
-      maintenance_mode: 'When on, the storefront shows a maintenance notice. Admin stays accessible.',
+      maintenance_mode: 'When on, the website shows a maintenance notice. Admin stays accessible.',
     },
     images: {
       // The header renders the logo at <=190px and the footer at <=180px, so 3x for
@@ -91,13 +91,41 @@ export const SETTINGS_META: Record<string, Meta> = {
       'The accent colour used across buttons, links and badges, plus the announcement bar and floating widgets. Changes go live immediately after saving.',
     hints: {
       theme_primary:
-        'Pick a preset or fine-tune hue, saturation and lightness. The preview below uses the exact same colour maths as the live storefront, so the swatches you see are the swatches customers get. Aim for a mid-to-dark tone — white button text needs roughly 3:1 contrast.',
+        'Pick a preset or fine-tune hue, saturation and lightness. The preview below uses the exact same colour maths as the live website, so the swatches you see are the swatches customers get. Aim for a mid-to-dark tone — white button text needs roughly 3:1 contrast.',
       theme_accent:
         'Used for sale flags, wishlist hearts and notification badges. A warm colour against a cool primary reads best.',
       announcement_text: 'Supports Bangla. Keep it under 120 characters so it fits on one line.',
       show_whatsapp_float: 'Turn off if you would rather handle enquiries by phone only.',
     },
     colors: ['theme_primary', 'theme_accent'],
+  },
+  homepage: {
+    title: 'Homepage',
+    description:
+      'The headline and the three figures shown over the main hero banner. The banner image, badge and buttons come from Banners — this group only controls the text laid over it.',
+    hints: {
+      hero_heading:
+        'The large headline on the main hero. Keep it under about 60 characters so it stays on two lines on a phone.',
+      hero_stat_1_value: 'The figure itself, e.g. 64, 24K+ or 4.8★. Leave the value empty to hide this stat.',
+      hero_stat_1_label: 'The caption under the figure, e.g. Districts Delivered.',
+      hero_stat_2_value: 'The figure itself. Leave the value empty to hide this stat.',
+      hero_stat_2_label: 'The caption under the figure.',
+      hero_stat_3_value: 'The figure itself. Leave the value empty to hide this stat.',
+      hero_stat_3_label: 'The caption under the figure.',
+    },
+    defaults: {
+      hero_heading: {
+        value: 'Authentic Bangladeshi Fashion, Delivered Nationwide',
+        type: 'text',
+        label: 'Hero Headline',
+      },
+      hero_stat_1_value: { value: '64', type: 'text', label: 'Stat 1 — Figure' },
+      hero_stat_1_label: { value: 'Districts Delivered', type: 'text', label: 'Stat 1 — Caption' },
+      hero_stat_2_value: { value: '24K+', type: 'text', label: 'Stat 2 — Figure' },
+      hero_stat_2_label: { value: 'Happy Customers', type: 'text', label: 'Stat 2 — Caption' },
+      hero_stat_3_value: { value: '4.8★', type: 'text', label: 'Stat 3 — Figure' },
+      hero_stat_3_label: { value: 'Average Rating', type: 'text', label: 'Stat 3 — Caption' },
+    },
   },
   seo: {
     title: 'SEO Settings',

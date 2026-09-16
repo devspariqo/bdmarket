@@ -1,7 +1,7 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-15T13:05:10.622Z
--- 23 tables populated with 668 rows.
+-- Generated 2026-09-16T09:17:36.276Z
+-- 21 tables populated with 657 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
 --     database, or one whose contents you do not mind losing.
@@ -654,30 +654,6 @@ INSERT INTO `Brand` (`id`, `name`, `slug`, `logo`, `description`, `country`, `fe
 ('cmtzd3kw10018670th1z6k1sj','Le Reve','le-reve',NULL,NULL,'Bangladesh',0,'active','2026-09-13 05:16:56.065'),
 ('cmtzd3kyl0019670t33570m2l','Infinity','infinity',NULL,NULL,'Bangladesh',0,'active','2026-09-13 05:16:56.158');
 
--- Cart: 6 rows
-INSERT INTO `Cart` (`id`, `token`, `customerId`, `couponCode`, `createdAt`, `updatedAt`) VALUES
-('cmtze3jb9000hm03ej5je7841','cart_0plj1cplalmtze3jb6',NULL,NULL,'2026-09-13 05:44:53.636','2026-09-13 05:44:53.636'),
-('cmtze3jlr000lm03e7n093sth','cart_kkvsy6j96xmtze3jlq',NULL,NULL,'2026-09-13 05:44:54.016','2026-09-13 05:44:54.016'),
-('cmtzeyvuo0003qwmtkx5ppb72','cart_kv1j7ilt7kmtzeyvuo',NULL,NULL,'2026-09-13 06:09:16.225','2026-09-13 06:09:16.225'),
-('cmtzf9had000bqwmtehxx2pyg','cart_3d6w1owjslmtzf9hac',NULL,NULL,'2026-09-13 06:17:30.565','2026-09-13 06:17:30.565'),
-('cmtzgmee70005ozw0cmj7vid9','cart_q614tulbkbmtzgmee4',NULL,NULL,'2026-09-13 06:55:32.959','2026-09-13 06:55:32.959'),
-('cmu0th8rr000l12nswtnekij1','cart_q9oglocn5gmu0th8ro','cmtzd3npr003g670tlz8dxy4n','WELCOME10','2026-09-14 05:43:13.574','2026-09-14 06:06:21.635');
-
--- CartItem: 12 rows
-INSERT INTO `CartItem` (`id`, `cartId`, `productId`, `variant`, `qty`, `price`) VALUES
-('cmtze3jbj000jm03e2hmbytit','cmtze3jb9000hm03ej5je7841','cmtzd3l1g001b670tz87dxc3t',NULL,2,2450),
-('cmtzeyvxq0005qwmtjxp5z8qb','cmtzeyvuo0003qwmtkx5ppb72','cmtzd3llj001r670tyjc45d40',NULL,1,24500),
-('cmtzf2a800007qwmtj5zas3la','cmtzeyvuo0003qwmtkx5ppb72','cmtzd3nc00035670tnwbyj7xo','Rose',6,1250),
-('cmtzf9hd7000dqwmt83m4y8y4','cmtzf9had000bqwmtehxx2pyg','cmtzd3lou001t670tfgbw1t72','S / White',1,1450),
-('cmtzgmehd0007ozw0359kuoy2','cmtzgmee70005ozw0cmj7vid9','cmtzd3l6d001f670tp6nhorg9','L / Blue',1,1690),
-('cmtzjarsk0009ozw0uh3j7bjw','cmtzgmee70005ozw0cmj7vid9','cmtzd3l1g001b670tz87dxc3t','L / White',4,2450),
-('cmtzjiyau001hozw0sbbbq4tz','cmtzgmee70005ozw0cmj7vid9','cmtzd3m800029670tdizomf8j','Black',1,690),
-('cmu0sjcpy000d12nsinzms059','cmtzgmee70005ozw0cmj7vid9','cmtzd3law001j670tort68duj','Green',1,8500),
-('cmu0zd3x5000vi90m17u1qfu2','cmu0th8rr000l12nswtnekij1','cmtzd3nc00035670tnwbyj7xo','Musk',1,1250),
-('cmu0zsmwe0028i90mjuwmnerr','cmu0th8rr000l12nswtnekij1','cmtzd3nc00035670tnwbyj7xo','Rose',2,1250),
-('cmu109zfa002ai90mdkxha0f7','cmtzgmee70005ozw0cmj7vid9','cmtzd3nc00035670tnwbyj7xo','Musk',1,1250),
-('cmu10artc002ci90mdn9nxsb9','cmu0th8rr000l12nswtnekij1','cmtzd3m800029670tdizomf8j','Beige',1,690);
-
 -- Category: 21 rows
 INSERT INTO `Category` (`id`, `name`, `nameBn`, `slug`, `description`, `image`, `icon`, `parentId`, `position`, `featured`, `status`, `metaTitle`, `metaDesc`, `createdAt`, `updatedAt`) VALUES
 ('cmtzd3izc0003670tyxipmxpj','Women','মহিলা','women',NULL,'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=80','👗',NULL,0,1,'active','Women Collection — মহিলা | BD Market','Shop premium women collection in Bangladesh. Authentic quality, cash on delivery nationwide.','2026-09-13 05:16:53.592','2026-09-13 05:16:53.592'),
@@ -1249,7 +1225,7 @@ INSERT INTO `Review` (`id`, `productId`, `customerId`, `authorName`, `authorEmai
 ('cmtzd3wi400dy670t0aegexjc','cmtzd3nla003d670tga0dmkyi','cmtzd3oj30044670twbzlk59a','Imran K.','reviewer371@example.com',5,'Great customer service','Had a sizing question and their team responded on WhatsApp within minutes. Very helpful. Product fits perfectly.','approved',1,22,'2026-02-01 05:17:11.115'),
 ('cmtzd3wkj00e0670tl1s8src8','cmtzd3nla003d670tga0dmkyi','cmtzd3onk0048670tlg249haq','Ayesha S.','reviewer372@example.com',4,'Nice product','Happy with the purchase overall. Packaging was neat and the product was exactly as shown.','approved',1,5,'2026-01-30 05:17:11.203');
 
--- Setting: 104 rows
+-- Setting: 111 rows
 INSERT INTO `Setting` (`id`, `group`, `key`, `value`, `type`, `label`, `updatedAt`) VALUES
 ('cmtzd3p9a005j670t2e9y6any','general','site_name','','text','Site Name','2026-09-14 08:31:17.894'),
 ('cmtzd3p9a005k670t7xqjbik5','general','site_name_bn','','text','Site Name (Bangla)','2026-09-14 08:31:17.894'),
@@ -1358,7 +1334,14 @@ Sitemap: http://localhost:3000/sitemap.xml','textarea','robots.txt Content','202
 ('cmu2op5z2a8ly0n4y','courier','steadfast_api_key','','text','Steadfast API Key','2026-09-15 13:04:57.470'),
 ('cmu2op60x6tkcawk2','courier','steadfast_secret_key','','text','Steadfast Secret Key','2026-09-15 13:04:57.537'),
 ('cmu2op62r7t6u32vm','courier','redx_api_key','','text','RedX API Key','2026-09-15 13:04:57.604'),
-('cmu2op64ldas2wzlm','courier','redx_pickup_store_id','','text','RedX Pickup Store ID','2026-09-15 13:04:57.669');
+('cmu2op64ldas2wzlm','courier','redx_pickup_store_id','','text','RedX Pickup Store ID','2026-09-15 13:04:57.669'),
+('cmu3nqlhv2e3tnumm','homepage','hero_heading','Authentic Bangladeshi Fashion, Delivered Nationwide','text','Hero Headline','2026-09-16 05:25:50.803'),
+('cmu3nqlo6mogpc31v','homepage','hero_stat_1_value','64','text','Stat 1 — Figure','2026-09-16 05:25:51.030'),
+('cmu3nqlqoi3r7j0l9','homepage','hero_stat_1_label','Districts Delivered','text','Stat 1 — Caption','2026-09-16 05:25:51.120'),
+('cmu3nqlt3fbnj87mp','homepage','hero_stat_2_value','24K+','text','Stat 2 — Figure','2026-09-16 05:25:51.207'),
+('cmu3nqlvcdxa2g2wb','homepage','hero_stat_2_label','Happy Customers','text','Stat 2 — Caption','2026-09-16 05:25:51.288'),
+('cmu3nqlxmi3wgexpf','homepage','hero_stat_3_value','4.8★','text','Stat 3 — Figure','2026-09-16 05:25:51.370'),
+('cmu3nqlzuvzn3sdeb','homepage','hero_stat_3_label','Average Rating','text','Stat 3 — Caption','2026-09-16 05:25:51.450');
 
 -- ShippingZone: 7 rows
 INSERT INTO `ShippingZone` (`id`, `name`, `districts`, `method`, `rate`, `freeOver`, `minDays`, `maxDays`, `codEnabled`, `status`, `position`, `createdAt`) VALUES
@@ -1378,7 +1361,7 @@ INSERT INTO `TaxRate` (`id`, `name`, `country`, `rate`, `inclusive`, `status`) V
 
 -- User: 11 rows
 INSERT INTO `User` (`id`, `email`, `passwordHash`, `name`, `phone`, `role`, `avatar`, `status`, `lastLoginAt`, `createdAt`, `updatedAt`) VALUES
-('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-15 12:36:35.706','2026-09-13 05:16:53.199','2026-09-15 12:36:35.707'),
+('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-16 08:08:54.843','2026-09-13 05:16:53.199','2026-09-16 08:08:54.844'),
 ('cmtzd3itz0001670t7aq4m1y7','manager@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Store Manager','+8801700000002','MANAGER',NULL,'active',NULL,'2026-09-13 05:16:53.400','2026-09-13 05:16:53.400'),
 ('cmtzd3iwt0002670tzcju4d4d','editor@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Content Editor',NULL,'EDITOR',NULL,'active',NULL,'2026-09-13 05:16:53.501','2026-09-13 05:16:53.501'),
 ('cmtzd3nnk003e670t3jmaj1w1','rahim@example.com','$2a$10$aH29OSWJSP7lXgRL4Q7EOelB4FHg43g1gk4mAcJEqfZAy2TeQSrUu','Rahim Ahmed','+8801711000001','CUSTOMER',NULL,'active','2026-09-13 08:19:17.280','2026-09-13 05:16:59.649','2026-09-13 08:19:17.281'),

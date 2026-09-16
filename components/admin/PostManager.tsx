@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -58,8 +58,7 @@ export default function PostManager({ posts }: { posts: Post[] }) {
   const [err, setErr] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useMemo(() => setList(posts), [posts]);
-
+  useEffect(() => setList(posts), [posts]);
   const filtered = useMemo(() => {
     let out = list;
     if (status !== 'all') out = out.filter((p) => p.status === status);

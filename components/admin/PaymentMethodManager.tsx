@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, Check, CreditCard, Loader2, Lock, Save, Settings2, Wallet, X,
@@ -75,8 +75,7 @@ export default function PaymentMethodManager({ methods }: { methods: Method[] })
   const [busy, setBusy] = useState<string | null>(null);
   const [panel, setPanel] = useState<Method | null>(null);
 
-  useMemo(() => setList(methods), [methods]);
-
+  useEffect(() => setList(methods), [methods]);
   async function patch(m: Method, data: Partial<Method>) {
     setBusy(m.id);
     try {

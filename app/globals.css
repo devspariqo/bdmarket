@@ -93,11 +93,16 @@ body {
   .btn-bd {
     @apply btn bg-brand-600 text-white hover:bg-brand-700;
   }
+  /* Size modifiers include `.btn` so they are usable on their own.
+     The colour variants (btn-primary, btn-dark, …) already `@apply btn`, but
+     these two did not — so `class="btn-lg"` produced a button with padding and
+     no flex layout, which is what made the homepage sale CTA and the Add to Cart
+     button render broken (icon and label misaligned, no active state). */
   .btn-sm {
-    @apply px-3 py-1.5 text-[13px] rounded-lg;
+    @apply btn px-3 py-1.5 text-[13px] rounded-lg;
   }
   .btn-lg {
-    @apply px-6 py-3.5 text-[17px] rounded-2xl;
+    @apply btn px-6 py-3.5 text-[17px] rounded-2xl;
   }
 
   .input {

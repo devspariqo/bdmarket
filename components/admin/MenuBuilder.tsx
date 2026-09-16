@@ -25,7 +25,7 @@ function parseMenuItems(raw: unknown): MenuItem[] {
 }
 
 /**
- * Every menu location the storefront actually reads.
+ * Every menu location the website actually reads.
  *
  * This list is the single source of truth and must stay in step with the
  * `safeMenu(...)` calls in `app/(store)/layout.tsx`. Two things were wrong here
@@ -38,7 +38,7 @@ function parseMenuItems(raw: unknown): MenuItem[] {
  *   - `footer-3` was missing entirely, even though the footer renders it in the
  *     bottom bar beside the copyright line. There was no way to edit those links.
  *
- * `name` is only the record's label in the admin — the storefront never prints it.
+ * `name` is only the record's label in the admin — the website never prints it.
  */
 const LOCATIONS = [
   { key: 'header', label: 'Header — main navigation', hint: 'Shown in the sticky header with mega-dropdown', name: 'Main Navigation' },

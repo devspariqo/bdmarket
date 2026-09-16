@@ -149,7 +149,32 @@ export async function getSiteConfig() {
       accentColor: s.theme_accent || '#f42a41',
       productsPerPage: Number(s.products_per_page || 12),
       showAnnouncement: s.show_announcement !== 'false',
+      /**
+       * Read here rather than in the layout so both floating widgets follow the
+       * same rule as the announcement bar. `show_whatsapp_float` was saved by the
+       * admin but never read anywhere, so turning it off did nothing.
+       */
+      showWhatsappFloat: s.show_whatsapp_float !== 'false',
       announcementText: s.announcement_text || 'ফ্রি ডেলিভারি ৳২০০০+ অর্ডারে • সারা বাংলাদেশে ক্যাশ অন ডেলিভারি',
+    },
+    /**
+     * Homepage hero copy.
+     *
+     * Only the headline and the three figures live here — the banner image, badge
+     * and buttons still come from the Banner table. Keeping the wording in
+     * settings means it is editable without adding columns to Banner, so it works
+     * on an existing database with no migration.
+     *
+     * `??` rather than `||` on the figures: an absent key falls back to the
+     * default, while an explicitly emptied one stays empty and hides the stat.
+     */
+    homepage: {
+      heroHeading: s.hero_heading || 'Authentic Bangladeshi Fashion, Delivered Nationwide',
+      heroStats: [
+        { value: s.hero_stat_1_value ?? '64', label: s.hero_stat_1_label ?? 'Districts Delivered' },
+        { value: s.hero_stat_2_value ?? '24K+', label: s.hero_stat_2_label ?? 'Happy Customers' },
+        { value: s.hero_stat_3_value ?? '4.8★', label: s.hero_stat_3_label ?? 'Average Rating' },
+      ].filter((x) => x.value.trim() !== ''),
     },
   };
 }

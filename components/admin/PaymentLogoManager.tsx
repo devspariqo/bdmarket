@@ -18,7 +18,7 @@ import { PaymentLogoImage } from '@/components/PaymentLogoImage';
  * that ships later (or remove one they don't accept) without a code change.
  * Order here is the order shown to customers.
  *
- * The storefront renders the uploaded artwork and nothing else, so a row without
+ * The website renders the uploaded artwork and nothing else, so a row without
  * a logo is hidden rather than falling back to a badge. The rows that will not
  * appear are flagged below and counted in the header.
  *
@@ -69,7 +69,7 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
   /**
    * Restore the standard nine methods in their default order.
    *
-   * Uploaded artwork is carried across by id. Now that the storefront shows
+   * Uploaded artwork is carried across by id. Now that the website shows
    * logos and nothing else, a plain reset would silently empty the grid — the
    * merchant would have to re-upload every file to recover.
    */
@@ -132,7 +132,7 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
             {shown} of {list.length} method{list.length === 1 ? '' : 's'} shown
           </p>
           <p className="text-[13px] text-ink-500">
-            Only uploaded logos appear on the storefront. Order here is the order customers see.
+            Only uploaded logos appear on the website. Order here is the order customers see.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -203,7 +203,7 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
                     <button
                       type="button"
                       onClick={() => patch(p.id, { logo: '' })}
-                      title="Remove this logo — the method is then hidden on the storefront"
+                      title="Remove this logo — the method is then hidden on the website"
                       className="btn-sm inline-flex items-center gap-1 rounded-lg px-2 py-1.5 text-[12px] font-semibold text-rose-600 transition hover:bg-rose-50"
                     >
                       <X className="h-3.5 w-3.5" />
@@ -237,7 +237,7 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
                 </p>
                 {!p.logo && (
                   <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-[12px] font-semibold text-amber-700">
-                    <AlertCircle className="h-3.5 w-3.5" /> Hidden on the storefront until a logo is
+                    <AlertCircle className="h-3.5 w-3.5" /> Hidden on the website until a logo is
                     uploaded
                   </p>
                 )}
@@ -290,11 +290,11 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
         )}
       </div>
 
-      {/* ── Live preview — mirrors the storefront exactly ── */}
+      {/* ── Live preview — mirrors the website exactly ── */}
       <div className="card p-5">
-        <h2 className="font-display text-base font-bold text-ink-900">Storefront preview</h2>
+        <h2 className="font-display text-base font-bold text-ink-900">Website preview</h2>
         <p className="mb-4 text-[13px] text-ink-500">
-          Exactly how the grid renders in the storefront footer (dark background) and on the product
+          Exactly how the grid renders in the website footer (dark background) and on the product
           page. Only methods with an uploaded logo appear.
         </p>
         <div className="rounded-2xl bg-ink-900 p-5">

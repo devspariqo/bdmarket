@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, Eye, Image as ImageIcon, Loader2, Megaphone, Pencil, Plus, Trash2, X,
@@ -50,8 +50,7 @@ export default function BannerManager({ banners }: { banners: Banner[] }) {
   const [err, setErr] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useMemo(() => setList(banners), [banners]);
-
+  useEffect(() => setList(banners), [banners]);
   const grouped = useMemo(() => {
     const map: Record<string, Banner[]> = {};
     for (const b of list) (map[b.position] ||= []).push(b);

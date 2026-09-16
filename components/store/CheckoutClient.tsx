@@ -17,6 +17,73 @@ type PM = {
 };
 type Zone = { name: string; districts: string; rate: number; freeOver: number | null; minDays: number; maxDays: number };
 
+type FieldProps = {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  error?: string;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+  hint?: string;
+  inputMode?: 'text' | 'tel' | 'email' | 'numeric' | 'decimal' | 'url' | 'search';
+  autoComplete?: string;
+  rows?: number;
+};
+
+/**
+ * One labelled checkout input.
+ *
+ * Declared at module scope on purpose. This used to live *inside* the
+ * `CheckoutClient` function body, which means React saw a brand-new component
+ * type on every render — so each keystroke unmounted and remounted the `<input>`
+ * and the field lost focus after a single character. A component defined outside
+ * the render keeps a stable identity, so the DOM node survives re-renders.
+ */
+function Field({
+  id, label, value, onChange, error, type = 'text', placeholder,
+  required = true, hint, inputMode, autoComplete, rows,
+}: FieldProps) {
+  const cls = cn('input', error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20');
+  return (
+    <div>
+      <label htmlFor={id} className="label">
+        {label} {required && <span className="text-rose-500">*</span>}
+      </label>
+      {rows ? (
+        <textarea
+          id={id}
+          rows={rows}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={cls}
+          aria-invalid={!!error}
+        />
+      ) : (
+        <input
+          id={id}
+          type={type}
+          inputMode={inputMode}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoComplete={autoComplete}
+          className={cls}
+          aria-invalid={!!error}
+        />
+      )}
+      {hint && !error && <p className="mt-1 text-[12px] text-ink-400">{hint}</p>}
+      {error && (
+        <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold text-rose-600">
+          <AlertCircle className="h-3 w-3" /> {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function CheckoutClient({
   items, summary, paymentMethods, zones, customer, savedAddress, freeShippingOver, guestCheckout,
 }: {
@@ -123,32 +190,6 @@ export default function CheckoutClient({
       setSubmitting(false);
     }
   }
-
-  const Field = ({
-    id, label, value, onChange, error, type = 'text', placeholder, required = true, hint, inputMode,
-  }: any) => (
-    <div>
-      <label htmlFor={id} className="label">
-        {label} {required && <span className="text-rose-500">*</span>}
-      </label>
-      <input
-        id={id}
-        type={type}
-        inputMode={inputMode}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={cn('input', error && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/20')}
-        aria-invalid={!!error}
-      />
-      {hint && !error && <p className="mt-1 text-[12px] text-ink-400">{hint}</p>}
-      {error && (
-        <p className="mt-1 flex items-center gap-1 text-[12px] font-semibold text-rose-600">
-          <AlertCircle className="h-3 w-3" /> {error}
-        </p>
-      )}
-    </div>
-  );
 
   return (
     <div className="grid gap-7 lg:grid-cols-[1fr_380px]">

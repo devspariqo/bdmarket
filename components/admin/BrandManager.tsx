@@ -1,12 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   AlertCircle, Award, ExternalLink, Loader2, Pencil, Plus, Search, Star, Trash2, X,
 } from 'lucide-react';
 import { cn, slugify } from '@/lib/utils';
+import ImageUploadField from '@/components/admin/settings/ImageUploadField';
 
 type Brand = {
   id: string;
@@ -40,8 +41,7 @@ export default function BrandManager({ initial }: { initial: Brand[] }) {
   const [err, setErr] = useState('');
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useMemo(() => setBrands(initial), [initial]);
-
+  useEffect(() => setBrands(initial), [initial]);
   const list = useMemo(() => {
     if (!search.trim()) return brands;
     const q = search.toLowerCase();
@@ -227,20 +227,18 @@ export default function BrandManager({ initial }: { initial: Brand[] }) {
                 />
               </div>
 
-              <div>
-                <label className="label">Logo URL</label>
-                <input
+              {/* Was a bare URL box, so the only way to set a logo was to host
+                  the file elsewhere first. Uses the same uploader as the site
+                  logo, which writes to /uploads and returns the path. */}
+              <div className="sm:col-span-2">
+                <ImageUploadField
                   value={panel.logo}
-                  onChange={(e) => setPanel({ ...panel, logo: e.target.value })}
-                  className="input"
-                  placeholder="https://…"
+                  onChange={(url) => setPanel({ ...panel, logo: url })}
+                  label="Brand logo"
+                  maxWidth={400}
+                  previewClassName="h-16"
+                  hint="Shown in the homepage Trusted Labels strip and on the brand page. A transparent PNG or SVG works best. Without one, the first letter of the name is shown instead."
                 />
-                {panel.logo && (
-                  <div className="mt-2 grid h-16 w-16 place-items-center rounded-xl border border-ink-200 bg-white">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={panel.logo} alt="" className="h-full w-full object-contain p-1.5" />
-                  </div>
-                )}
               </div>
 
               <div>

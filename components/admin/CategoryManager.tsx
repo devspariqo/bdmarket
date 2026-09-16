@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ChevronDown, ChevronRight, Image as ImageIcon, Pencil, Plus, Search,
@@ -50,8 +50,7 @@ export default function CategoryManager({ initial }: { initial: Cat[] }) {
   const [deleting, setDeleting] = useState<string | null>(null);
 
   // Keep local state fresh after router.refresh()
-  useMemo(() => setCats(initial), [initial]);
-
+  useEffect(() => setCats(initial), [initial]);
   const byParent = useMemo(() => {
     const map: Record<string, Cat[]> = {};
     for (const c of cats) {
