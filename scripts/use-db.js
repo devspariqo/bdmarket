@@ -19,6 +19,71 @@ const path = require('path');
 
 const SCHEMA = path.join(__dirname, '..', 'prisma', 'schema.prisma');
 
+/**
+ * Columns that carry an explicit MySQL native type.
+ *
+ * Prisma maps a plain `String` to VARCHAR(191) on MySQL and silently truncates
+ * anything longer. SQLite does not enforce the limit, so the failure is invisible
+ * in local development and appears only in production — long values come back
+ * cut to 191 characters, and when the value is JSON it no longer parses and the
+ * UI renders empty. `Menu.items`, `Setting.value` and `Product.images` all failed
+ * that way.
+ *
+ * SQLite rejects the annotation outright ("Native type Text is not supported for
+ * sqlite connector"), so it has to be removed for that provider and restored for
+ * the others. See scripts/gen-column-types.js.
+ */
+let COLUMN_TYPES = {};
+try {
+  COLUMN_TYPES = require('./column-types');
+} catch {
+  /* not generated yet — the schema is then used exactly as written */
+}
+
+/**
+ * Apply or remove the native type annotations for the chosen provider.
+ *
+ * SQLite takes the plain form; MySQL and Postgres take the annotated one.
+ */
+function syncColumnTypes(src, provider) {
+  const strip = provider === 'sqlite';
+
+  if (strip) {
+    // Drop the annotation but keep any trailing comment where it is.
+    return src.replace(/(\bString\??)\s+@db\.(?:Text|LongText)\b/g, '$1');
+  }
+
+  // Re-apply from the list. Walk model blocks so a field name that appears in
+  // two models cannot be annotated in the wrong one.
+  const lines = src.split('\n');
+  let model = null;
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^model\s+(\w+)\s*\{/);
+    if (m) {
+      model = m[1];
+      continue;
+    }
+    if (/^\}/.test(lines[i])) {
+      model = null;
+      continue;
+    }
+    if (!model || !COLUMN_TYPES[model]) continue;
+    if (lines[i].includes('@db.')) continue;
+
+    const field = lines[i].match(/^(\s+)(\w+)(\s+)String(\??)(.*)$/);
+    if (!field) continue;
+    const [, indent, name, gap, optional, rest] = field;
+    const type = COLUMN_TYPES[model][name];
+    if (!type) continue;
+
+    const commentIdx = rest.indexOf('//');
+    const attrs = (commentIdx >= 0 ? rest.slice(0, commentIdx) : rest).replace(/\s+$/, '');
+    const comment = commentIdx >= 0 ? ' ' + rest.slice(commentIdx) : '';
+    lines[i] = `${indent}${name}${gap}String${optional} ${type}${attrs}${comment}`;
+  }
+  return lines.join('\n');
+}
+
 const PROVIDERS = {
   sqlite: {
     provider: 'sqlite',
@@ -79,6 +144,9 @@ src = src.replace(
   url      = env("DATABASE_URL")
 }`,
 );
+
+// 3. Keep the column types valid for this provider
+src = syncColumnTypes(src, cfg.provider);
 
 if (src === before) {
   console.log(`Schema already set to ${cfg.provider} — nothing to change.`);

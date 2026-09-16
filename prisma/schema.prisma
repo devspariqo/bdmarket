@@ -39,7 +39,7 @@ model AuditLog {
   action    String
   entity    String
   entityId  String?
-  meta      String?
+  meta      String? @db.Text
   ip        String?
   createdAt DateTime @default(now())
 
@@ -59,8 +59,8 @@ model Customer {
   gender        String?
   birthday      DateTime?
   district      String?
-  tags          String?   // comma separated
-  notes         String?
+  tags          String? @db.Text // comma separated
+  notes         String? @db.Text
   totalSpent    Float     @default(0)
   orderCount    Int       @default(0)
   acceptsMarketing Boolean @default(true)
@@ -98,8 +98,8 @@ model Category {
   name        String
   nameBn      String?
   slug        String     @unique
-  description String?
-  image       String?
+  description String? @db.Text
+  image       String? @db.Text
   icon        String?
   parentId    String?
   parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id])
@@ -107,8 +107,8 @@ model Category {
   position    Int        @default(0)
   featured    Boolean    @default(false)
   status      String     @default("active")
-  metaTitle   String?
-  metaDesc    String?
+  metaTitle   String? @db.Text
+  metaDesc    String? @db.Text
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -121,8 +121,8 @@ model Brand {
   id        String    @id @default(cuid())
   name      String
   slug      String    @unique
-  logo      String?
-  description String?
+  logo      String? @db.Text
+  description String? @db.Text
   country   String?
   featured  Boolean   @default(false)
   status    String    @default("active")
@@ -136,10 +136,10 @@ model Product {
   nameBn         String?
   slug           String   @unique
   sku            String   @unique
-  barcode        String?
+  barcode        String? @db.Text
   type           String   @default("simple") // simple | variable
-  description    String?
-  shortDesc      String?
+  description    String? @db.Text
+  shortDesc      String? @db.Text
   price          Float
   comparePrice   Float?
   costPrice      Float?
@@ -149,15 +149,15 @@ model Product {
   manageStock    Boolean  @default(true)
   stockStatus    String   @default("instock") // instock | outofstock | onbackorder
   weight         Float?
-  dimensions     String?
+  dimensions     String? @db.Text
   categoryId     String?
   category       Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   brandId        String?
   brand          Brand?   @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  images         String   // JSON array of urls
-  tags           String?  // comma separated
-  attributes     String?  // JSON [{name, values[]}]
-  variants       String?  // JSON [{id,size,color,price,stock,sku}]
+  images         String @db.Text // JSON array of urls
+  tags           String? @db.Text // comma separated
+  attributes     String? @db.Text // JSON [{name, values[]}]
+  variants       String? @db.Text // JSON [{id,size,color,price,stock,sku}]
   featured       Boolean  @default(false)
   bestseller     Boolean  @default(false)
   newArrival     Boolean  @default(true)
@@ -170,14 +170,14 @@ model Product {
   fabric         String?
   occasion       String?
   fit            String?
-  careInstructions String?
+  careInstructions String? @db.Text
   countryOfOrigin String  @default("Bangladesh")
   // SEO
-  metaTitle      String?
-  metaDesc       String?
-  metaKeywords   String?
-  ogImage        String?
-  canonical      String?
+  metaTitle      String? @db.Text
+  metaDesc       String? @db.Text
+  metaKeywords   String? @db.Text
+  ogImage        String? @db.Text
+  canonical      String? @db.Text
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -241,7 +241,7 @@ model Order {
   status         String      @default("PENDING")
   paymentStatus  String      @default("unpaid") // paid | unpaid | refunded | partial
   paymentMethod  String      @default("cod") // cod | bkash | nagad | rocket | card | sslcommerz
-  paymentRef     String?
+  paymentRef     String? @db.Text
   subtotal       Float
   discount       Float       @default(0)
   shippingCost   Float       @default(0)
@@ -249,20 +249,20 @@ model Order {
   total          Float
   couponCode     String?
   currency       String      @default("BDT")
-  shippingMethod String?
-  shippingZone   String?
+  shippingMethod String? @db.Text
+  shippingZone   String? @db.Text
   // Address snapshot
   shipDivision   String
   shipDistrict   String
-  shipArea       String?
-  shipStreet     String
+  shipArea       String? @db.Text
+  shipStreet     String @db.Text
   shipPostcode   String?
-  customerNote   String?
-  adminNote      String?
-  trackingNumber String?
-  courier        String?
-  ipAddress      String?
-  userAgent      String?
+  customerNote   String? @db.Text
+  adminNote      String? @db.Text
+  trackingNumber String? @db.Text
+  courier        String? @db.Text
+  ipAddress      String? @db.Text
+  userAgent      String? @db.Text
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   confirmedAt    DateTime?
@@ -284,10 +284,10 @@ model OrderItem {
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId   String?
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
-  productName String
+  productName String @db.Text
   variant     String?
-  sku         String?
-  image       String?
+  sku         String? @db.Text
+  image       String? @db.Text
   price       Float
   qty         Int
   total       Float
@@ -298,8 +298,8 @@ model OrderEvent {
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   status    String
-  note      String?
-  by        String?
+  note      String? @db.Text
+  by        String? @db.Text
   createdAt DateTime @default(now())
 }
 
@@ -308,7 +308,7 @@ model OrderEvent {
 model Coupon {
   id            String    @id @default(cuid())
   code          String    @unique
-  description   String?
+  description   String? @db.Text
   type          String    @default("percent") // percent | fixed | freeship
   value         Float
   minOrder      Float     @default(0)
@@ -317,7 +317,7 @@ model Coupon {
   usedCount     Int       @default(0)
   perCustomer   Int       @default(1)
   appliesTo     String    @default("all") // all | category | product
-  targetIds     String?
+  targetIds     String? @db.Text
   startsAt      DateTime?
   expiresAt     DateTime?
   status        String    @default("active")
@@ -335,8 +335,8 @@ model Review {
   authorName  String
   authorEmail String
   rating      Int
-  title       String?
-  body        String
+  title       String? @db.Text
+  body        String @db.Text
   status      String   @default("pending") // pending | approved | spam
   verified    Boolean  @default(false)
   helpful     Int      @default(0)
@@ -349,39 +349,39 @@ model Review {
 
 model Page {
   id          String    @id @default(cuid())
-  title       String
-  titleBn     String?
+  title       String @db.Text
+  titleBn     String? @db.Text
   slug        String    @unique
-  content     String
-  excerpt     String?
+  content     String @db.LongText
+  excerpt     String? @db.Text
   template    String    @default("default")
   status      String    @default("published") // published | draft
   showInMenu  Boolean   @default(false)
   menuOrder   Int       @default(0)
-  featuredImage String?
-  metaTitle   String?
-  metaDesc    String?
-  metaKeywords String?
+  featuredImage String? @db.Text
+  metaTitle   String? @db.Text
+  metaDesc    String? @db.Text
+  metaKeywords String? @db.Text
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
 model Post {
   id            String    @id @default(cuid())
-  title         String
+  title         String @db.Text
   slug          String    @unique
-  excerpt       String?
-  content       String
-  coverImage    String?
-  category      String?
-  tags          String?
-  authorName    String    @default("BD Market Team")
+  excerpt       String? @db.Text
+  content       String @db.LongText
+  coverImage    String? @db.Text
+  category      String? @db.Text
+  tags          String? @db.Text
+  authorName    String @db.Text    @default("BD Market Team")
   status        String    @default("published") // published | draft
   featured      Boolean   @default(false)
   readMinutes   Int       @default(4)
   viewCount     Int       @default(0)
-  metaTitle     String?
-  metaDesc      String?
+  metaTitle     String? @db.Text
+  metaDesc      String? @db.Text
   publishedAt   DateTime  @default(now())
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -393,21 +393,21 @@ model Menu {
   id        String   @id @default(cuid())
   name      String
   location  String   @unique // header | footer-1 | footer-2 | mobile
-  items     String   // JSON [{label, labelBn, href, children[]}]
+  items     String @db.Text // JSON [{label, labelBn, href, children[]}]
   status    String   @default("active")
   updatedAt DateTime @updatedAt
 }
 
 model Banner {
   id        String   @id @default(cuid())
-  title     String
-  subtitle  String?
-  image     String
-  ctaLabel  String?
-  ctaHref   String?
+  title     String @db.Text
+  subtitle  String? @db.Text
+  image     String @db.Text
+  ctaLabel  String? @db.Text
+  ctaHref   String? @db.Text
   position  String   @default("hero") // hero | promo-1 | promo-2 | strip
-  bgColor   String?
-  textColor String?
+  bgColor   String? @db.Text
+  textColor String? @db.Text
   position_order Int  @default(0)
   status    String   @default("active")
   startsAt  DateTime?
@@ -417,13 +417,13 @@ model Banner {
 
 model Media {
   id        String   @id @default(cuid())
-  filename  String
-  url       String
-  mimeType  String?
+  filename  String @db.Text
+  url       String @db.Text
+  mimeType  String? @db.Text
   size      Int?
   width     Int?
   height    Int?
-  alt       String?
+  alt       String? @db.Text
   folder    String   @default("uploads")
   createdAt DateTime @default(now())
 }
@@ -434,7 +434,7 @@ model Setting {
   id        String   @id @default(cuid())
   group     String   // general | store | seo | checkout | shipping | payment | email | sms | social | appearance | analytics | advanced
   key       String   @unique
-  value     String
+  value     String @db.Text
   type      String   @default("text") // text | textarea | number | boolean | select | json | image
   label     String?
   updatedAt DateTime @updatedAt
@@ -445,7 +445,7 @@ model Setting {
 model ShippingZone {
   id          String   @id @default(cuid())
   name        String
-  districts   String   // comma separated
+  districts   String @db.Text // comma separated
   method      String   @default("flat") // flat | free | weight | freeship_over
   rate        Float    @default(0)
   freeOver    Float?
@@ -462,14 +462,14 @@ model PaymentMethod {
   code        String   @unique // cod | bkash | nagad | rocket | card | sslcommerz
   name        String
   nameBn      String?
-  description String?
-  icon        String?
-  instructions String?
+  description String? @db.Text
+  icon        String? @db.Text
+  instructions String? @db.Text
   isEnabled   Boolean  @default(true)
   isSandbox   Boolean  @default(true)
   fee         Float    @default(0)
   feeType     String   @default("fixed") // fixed | percent
-  config      String?  // JSON credentials
+  config      String? @db.Text // JSON credentials
   position    Int      @default(0)
   updatedAt   DateTime @updatedAt
 }
@@ -487,8 +487,8 @@ model TaxRate {
 
 model PageView {
   id        String   @id @default(cuid())
-  path      String
-  referrer  String?
+  path      String @db.Text
+  referrer  String? @db.Text
   sessionId String?
   device    String?
   createdAt DateTime @default(now())

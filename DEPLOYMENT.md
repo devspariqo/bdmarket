@@ -231,6 +231,46 @@ Work through it in this order:
 Every attempt is recorded on the order's own timeline in the admin, so a failed notification shows up
 next to the order it belongs to rather than only in a server log.
 
+### If your site is already live: run the column-length fix
+
+**Do this on any database created before this change, or the symptoms below will keep coming back.**
+It is non-destructive and keeps every row.
+
+**The problem.** Prisma maps a plain `String` to `VARCHAR(191)` on MySQL. SQLite — what local
+development uses — does not enforce that limit, so anything longer saves and reads back perfectly on
+your machine and is **silently truncated to 191 characters on the server**. Where the value is JSON,
+the truncation makes it unparseable and the interface renders empty. That is why these all look like
+separate bugs but are one:
+
+| What you see | Column | Longest real value |
+|---|---|---|
+| Menu saves, then shows "This menu is empty" | `Menu.items` | 1,608 |
+| Payment logos save, then all disappear | `Setting.value` | 683 |
+| Product image missing on the card and page | `Product.images` | 286 |
+| Product variants lost | `Product.variants` | 2,038 |
+| Blog and page body text cut off | `Post.content`, `Page.content` | 1,162 / 998 |
+
+**The fix.** In hPanel → **Databases → phpMyAdmin**, select your database, open the **SQL** tab, paste
+the whole of **`prisma/fix-column-lengths.sql`** and run it. It widens 80 columns from `VARCHAR(191)`
+to `TEXT`. It is safe to run twice.
+
+```bash
+# regenerate it after any schema change, then commit the result
+npm run db:column-migration
+```
+
+**Then re-save the affected records.** MySQL truncates on write, so values already stored were lost
+when they were saved; running the migration stops the loss but does not restore it. Open the menu,
+the payment logos and any product you added, and save them again — they will now store in full.
+
+New installs need none of this: `prisma/schema.sql` and `prisma/schema-with-demo.sql` already create
+these columns as `TEXT`.
+
+**A note on the schema.** `prisma/schema.prisma` carries `@db.Text` on these columns, which SQLite
+rejects outright. `npm run db:use sqlite` strips them and `npm run db:use mysql` puts them back, so
+switching provider stays a one-liner. If you add another long column, annotate it, then run
+`npm run db:column-types` to refresh the list the switcher uses.
+
 ### Creating the tables
 
 Once `DATABASE_URL` is set and `/api/health` reports `schema-not-pushed`, the connection is working
