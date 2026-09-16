@@ -218,8 +218,12 @@ export default function ProductImageUploader({
                 )}
               >
                 <div className="aspect-[4/5]">
+                  {/* `draggable={false}` matters: an <img> is natively draggable,
+                      so without it the browser starts an image drag instead of
+                      the tile drag, and the tile's onDrop never fires — which is
+                      why dragging to reorder did nothing. */}
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={img} alt={alts[img] || ''} className="h-full w-full object-cover" />
+                  <img src={img} alt={alts[img] || ''} draggable={false} className="h-full w-full object-cover" />
                 </div>
 
                 {/* Drag affordance */}

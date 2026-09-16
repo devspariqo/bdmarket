@@ -1,6 +1,6 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-16T11:14:32.805Z
+-- Generated 2026-09-16T12:07:20.884Z
 -- 21 tables populated with 657 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
@@ -1311,7 +1311,7 @@ Sitemap: http://localhost:3000/sitemap.xml','textarea','robots.txt Content','202
 ('cmtzd3p9b007o670tye2bvlls','advanced','advanced_api_key','bdm-api-dev-key','text','REST API Key','2026-09-13 05:17:01.726'),
 ('cmtzd3p9b007p670tcm05as16','advanced','advanced_cache','true','boolean','Enable Page Cache','2026-09-13 05:17:01.726'),
 ('cmtzd3p9b007q670tubqcgjzy','advanced','advanced_debug','false','boolean','Debug Mode','2026-09-13 05:17:01.726'),
-('cmu0zp76k001vi90mkhfs06e4','payment_logos','payment_logos','[{"id":"bkash","label":"Bkash","logo":"/uploads/1789374804569-bkash-payments.png","color":"#e2136e","mark":""},{"id":"nagad","label":"Nagad","logo":"/uploads/1789374816763-nagad-payments.png","color":"#f58220","mark":""},{"id":"rocket","label":"Rocket","logo":"/uploads/1789374821198-rocket-payments.png","color":"#8c3494","mark":""},{"id":"visa","label":"VISA","logo":"/uploads/1789374844242-visa-payments.png","color":"#1a1f71","mark":""},{"id":"mastercard","label":"Mastercard","logo":"/uploads/1789374849720-mastercard-payments.png","color":"#eb001b","mark":""},{"id":"cod","label":"Cash On Delivery","logo":"/uploads/1789374994363-cod-payments.png","color":"#334155","mark":""}]','json','Accepted Payment Logos','2026-09-14 08:39:49.932'),
+('cmu0zp76k001vi90mkhfs06e4','payment_logos','payment_logos','[{"id":"bkash","label":"Bkash","logo":"/uploads/1789374804569-bkash-payments.png","color":"#e2136e","mark":""},{"id":"nagad","label":"Nagad","logo":"/uploads/1789374816763-nagad-payments.png","color":"#f58220","mark":""},{"id":"rocket","label":"Rocket","logo":"/uploads/1789374821198-rocket-payments.png","color":"#8c3494","mark":""},{"id":"visa","label":"VISA","logo":"/uploads/1789374844242-visa-payments.png","color":"#1a1f71","mark":""},{"id":"mastercard","label":"Mastercard","logo":"/uploads/1789374849720-mastercard-payments.png","color":"#eb001b","mark":""},{"id":"cod","label":"Cash On Delivery","logo":"/uploads/1789374994363-cod-payments.png","color":"#334155","mark":""}]','json','Accepted Payment Logos','2026-09-16 12:04:34.766'),
 ('cmu2nzbeb0emyj9he','general','footer_logo','','image','Footer Logo URL','2026-09-15 12:44:51.445'),
 ('cmu2op4xg3zdjqhvy','email','email_enabled','true','boolean','Enable Transactional Email','2026-09-15 13:04:56.116'),
 ('cmu2op535zqqmi6so','email','smtp_host','','text','SMTP Host','2026-09-15 13:04:56.321'),
@@ -1361,7 +1361,7 @@ INSERT INTO `TaxRate` (`id`, `name`, `country`, `rate`, `inclusive`, `status`) V
 
 -- User: 11 rows
 INSERT INTO `User` (`id`, `email`, `passwordHash`, `name`, `phone`, `role`, `avatar`, `status`, `lastLoginAt`, `createdAt`, `updatedAt`) VALUES
-('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-16 11:10:22.109','2026-09-13 05:16:53.199','2026-09-16 11:10:22.111'),
+('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-16 12:03:46.068','2026-09-13 05:16:53.199','2026-09-16 12:03:46.069'),
 ('cmtzd3itz0001670t7aq4m1y7','manager@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Store Manager','+8801700000002','MANAGER',NULL,'active',NULL,'2026-09-13 05:16:53.400','2026-09-13 05:16:53.400'),
 ('cmtzd3iwt0002670tzcju4d4d','editor@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Content Editor',NULL,'EDITOR',NULL,'active',NULL,'2026-09-13 05:16:53.501','2026-09-13 05:16:53.501'),
 ('cmtzd3nnk003e670t3jmaj1w1','rahim@example.com','$2a$10$aH29OSWJSP7lXgRL4Q7EOelB4FHg43g1gk4mAcJEqfZAy2TeQSrUu','Rahim Ahmed','+8801711000001','CUSTOMER',NULL,'active','2026-09-13 08:19:17.280','2026-09-13 05:16:59.649','2026-09-13 08:19:17.281'),

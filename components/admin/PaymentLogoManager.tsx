@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   AlertCircle, ArrowDown, ArrowUp, Check, ImageIcon, Loader2, Plus, RotateCcw, Save,
   Trash2, Upload, X,
@@ -29,6 +30,7 @@ import { PaymentLogoImage } from '@/components/PaymentLogoImage';
 const MAX_WIDTH = 480; // a logo tile renders ~120px, so 4x is plenty
 
 export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[] }) {
+  const router = useRouter();
   const [list, setList] = useState<PaymentLogo[]>(initial);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -115,7 +117,14 @@ export default function PaymentLogoManager({ initial }: { initial: PaymentLogo[]
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error || 'Save failed');
       setSaved(true);
-      // Refresh so the footer picks up the new value on the next navigation.
+      /**
+       * Re-fetch the server component so `initial` becomes the value we just
+       * stored. Without it `dirty` stays true forever — `initial` never moves —
+       * so the Save button never settles and the "Saved" badge contradicts it.
+       * This is also what the footer reads, so the grid updates immediately
+       * rather than on the next navigation.
+       */
+      router.refresh();
       setTimeout(() => setSaved(false), 4000);
     } catch (e: any) {
       setErr(e.message || 'Save failed');

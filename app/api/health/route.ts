@@ -4,6 +4,21 @@ import prisma from '@/lib/db';
 export const dynamic = 'force-dynamic';
 
 /**
+ * Which commit this deployment was built from.
+ *
+ * Answers "is the live site actually running the code I pushed?" — the first
+ * thing to rule out when a fix appears not to have worked. Compare against
+ * `git rev-parse --short origin/main`. `unknown` means the build ran without a
+ * `.git` directory, so only BUILD_TIME dates it.
+ *
+ * Included on every response, including the failures: that is exactly when you
+ * need it.
+ */
+function buildInfo() {
+  return { sha: process.env.BUILD_SHA || 'unknown', time: process.env.BUILD_TIME || null };
+}
+
+/**
  * GET /api/health
  *
  * A deployment smoke test. Answers the question "why is the site throwing a
@@ -120,6 +135,7 @@ export async function GET() {
         ok: false,
         problem: 'database-url-missing',
         hint: 'DATABASE_URL is not set in this environment. Add it to your host\'s environment variables.',
+        build: buildInfo(),
       },
       { status: 503 }
     );
@@ -136,11 +152,12 @@ export async function GET() {
       authSecretConfigured: !!process.env.AUTH_SECRET,
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL || null,
       latencyMs: Date.now() - startedAt,
+      build: buildInfo(),
     });
   } catch (err) {
     console.error('[health] database check failed:', err);
 
     const { problem, hint } = diagnose(err);
-    return NextResponse.json({ ok: false, problem, hint }, { status: 503 });
+    return NextResponse.json({ ok: false, problem, hint, build: buildInfo() }, { status: 503 });
   }
 }

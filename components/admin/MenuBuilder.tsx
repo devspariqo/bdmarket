@@ -66,6 +66,16 @@ export default function MenuBuilder({
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState('');
   const [preview, setPreview] = useState<'desktop' | 'mobile'>('desktop');
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  /**
+   * Only the grip handle makes a row draggable.
+   *
+   * `draggable` on the whole row would swallow text selection inside the label
+   * and URL inputs — you could not drag-select a URL to edit it. Setting it on
+   * mousedown over the handle keeps both behaviours.
+   */
+  const [grabIndex, setGrabIndex] = useState<number | null>(null);
 
   const current = menus.find((m) => m.location === active);
   const items = drafts[active] || [];
@@ -103,6 +113,30 @@ export default function MenuBuilder({
 
   function remove(i: number) {
     setItems(items.filter((_, idx) => idx !== i));
+  }
+
+  /**
+   * Drag-and-drop reorder.
+   *
+   * The up/down arrows were the only way to reorder before; the grip icon was
+   * decorative. Note `onDragOver` must call `preventDefault()` or the browser
+   * never fires `onDrop` at all — the usual reason HTML5 drag silently does
+   * nothing.
+   */
+  function dropAt(target: number) {
+    if (dragIndex === null || dragIndex === target) {
+      setDragIndex(null);
+      setOverIndex(null);
+      setGrabIndex(null);
+      return;
+    }
+    const next = [...items];
+    const [moved] = next.splice(dragIndex, 1);
+    next.splice(target, 0, moved);
+    setItems(next);
+    setDragIndex(null);
+    setOverIndex(null);
+    setGrabIndex(null);
   }
 
   function move(i: number, dir: -1 | 1) {
@@ -216,12 +250,39 @@ export default function MenuBuilder({
             <div className="space-y-2 p-4">
               {items.length ? (
                 items.map((it, i) => (
-                  <div key={i} className="rounded-xl border border-ink-200 bg-white p-3">
+                  <div
+                    key={i}
+                    draggable={grabIndex === i}
+                    onDragStart={() => setDragIndex(i)}
+                    onDragOver={(e) => {
+                      // Without preventDefault the browser never fires onDrop.
+                      e.preventDefault();
+                      setOverIndex(i);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      dropAt(i);
+                    }}
+                    onDragEnd={() => {
+                      setDragIndex(null);
+                      setOverIndex(null);
+                      setGrabIndex(null);
+                    }}
+                    className={cn(
+                      'rounded-xl border bg-white p-3 transition',
+                      overIndex === i && dragIndex !== null && dragIndex !== i
+                        ? 'border-brand-500 ring-2 ring-brand-500/30'
+                        : 'border-ink-200',
+                      dragIndex === i && 'opacity-50'
+                    )}
+                  >
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col">
                         <button
                           onClick={() => move(i, -1)}
                           disabled={i === 0}
+                          title="Move up"
                           className="grid h-4 w-5 place-items-center rounded text-ink-400 hover:text-ink-700 disabled:opacity-30"
                         >
                           <ChevronDown className="h-3 w-3 rotate-180" />
@@ -229,12 +290,22 @@ export default function MenuBuilder({
                         <button
                           onClick={() => move(i, 1)}
                           disabled={i === items.length - 1}
+                          title="Move down"
                           className="grid h-4 w-5 place-items-center rounded text-ink-400 hover:text-ink-700 disabled:opacity-30"
                         >
                           <ChevronDown className="h-3 w-3" />
                         </button>
                       </div>
-                      <GripVertical className="h-4 w-4 shrink-0 text-ink-300" />
+
+                      {/* The grip is the drag source, not the whole row. */}
+                      <span
+                        onMouseDown={() => setGrabIndex(i)}
+                        onMouseUp={() => setGrabIndex(null)}
+                        title="Drag to reorder"
+                        className="cursor-grab active:cursor-grabbing"
+                      >
+                        <GripVertical className="h-4 w-4 shrink-0 text-ink-300" />
+                      </span>
 
                       <input
                         value={it.label}
