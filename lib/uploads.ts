@@ -25,3 +25,22 @@ export const UPLOAD_DIR = process.env.UPLOAD_DIR
 /** Public URL prefix for an uploaded file. Kept in one place so the two routes
  *  and any future caller cannot disagree. */
 export const UPLOAD_URL_PREFIX = '/uploads/';
+
+/**
+ * True when uploads are being written somewhere a deploy will delete.
+ *
+ * Only fires when the app is demonstrably running from a build output directory
+ * — `output: 'standalone'` (`…/.next/standalone`) or a host that rebuilds into a
+ * versioned folder (`…/hbuilds/…`, which is how Hostinger Web Apps works). A
+ * plain VPS running `next start` from a checkout keeps `public/uploads` between
+ * deploys and must not be warned at.
+ *
+ * An explicit `UPLOAD_DIR` always wins: the merchant has made the decision, and
+ * second-guessing it would train them to ignore the warning.
+ */
+export function isUploadDirEphemeral(): boolean {
+  if (process.env.UPLOAD_DIR) return false;
+  if (process.env.NODE_ENV !== 'production') return false;
+  const cwd = process.cwd().replace(/\\/g, '/');
+  return cwd.includes('/.next/standalone') || cwd.includes('/hbuilds/');
+}

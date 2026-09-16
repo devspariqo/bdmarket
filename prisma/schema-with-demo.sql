@@ -1,7 +1,7 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-16T10:59:04.729Z
--- 21 tables populated with 659 rows.
+-- Generated 2026-09-16T11:14:32.805Z
+-- 21 tables populated with 657 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
 --     database, or one whose contents you do not mind losing.
@@ -698,7 +698,7 @@ INSERT INTO `Customer` (`id`, `userId`, `email`, `name`, `phone`, `gender`, `bir
 ('cmtzd3oj30044670twbzlk59a','cmtzd3ogh0042670t8iu1ceu6','imran@example.com','Imran Khan','+8801711000007',NULL,NULL,'Dhaka','regular',NULL,3450,1,1,'2026-09-13 05:17:00.784','2026-09-13 05:17:12.053'),
 ('cmtzd3onk0048670tlg249haq','cmtzd3olf0046670td1ygf3q1','ayesha@example.com','Ayesha Siddika','+8801711000008',NULL,NULL,'Gazipur','vip,regular',NULL,23210,3,1,'2026-09-13 05:17:00.944','2026-09-13 05:17:16.235');
 
--- Media: 50 rows
+-- Media: 48 rows
 INSERT INTO `Media` (`id`, `filename`, `url`, `mimeType`, `size`, `width`, `height`, `alt`, `folder`, `createdAt`) VALUES
 ('cmtzd49cn00q9670t0797b6hd','panjabi1.jpg','https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=900&q=80','image/jpeg',120000,900,1200,'panjabi','products','2026-09-13 05:17:27.768'),
 ('cmtzd49cn00qa670t1dg82lom','panjabi2.jpg','https://images.unsplash.com/photo-1603252109303-2751441e0052?auto=format&fit=crop&w=900&q=80','image/jpeg',128000,900,1200,'panjabi','products','2026-09-13 05:17:27.768'),
@@ -747,13 +747,11 @@ INSERT INTO `Media` (`id`, `filename`, `url`, `mimeType`, `size`, `width`, `heig
 ('cmu0zkggi001ri90m4gjkp7dw','rocket-payments.png','/uploads/1789374821198-rocket-payments.png','image/png',9374,NULL,NULL,NULL,'uploads','2026-09-14 08:33:41.202'),
 ('cmu0zky8m001si90manxmeoqf','visa-payments.png','/uploads/1789374844242-visa-payments.png','image/png',9079,NULL,NULL,NULL,'uploads','2026-09-14 08:34:04.246'),
 ('cmu0zl2gv001ti90m361lvqls','mastercard-payments.png','/uploads/1789374849720-mastercard-payments.png','image/png',7871,NULL,NULL,NULL,'uploads','2026-09-14 08:34:09.727'),
-('cmu0zo62p001ui90mkg55ezhc','cod-payments.png','/uploads/1789374994363-cod-payments.png','image/png',9968,NULL,NULL,NULL,'uploads','2026-09-14 08:36:34.370'),
-('cmu3xxzk00002i0ptcf8zqsij','repro-upload.png','/uploads/1789553491770-repro-upload.png','image/png',89,NULL,NULL,NULL,'uploads','2026-09-16 10:11:31.776'),
-('cmu3zg8qs0002fsznnvo9pgzn','v-upload.png','/uploads/1789556023099-v-upload.png','image/png',89,NULL,NULL,NULL,'uploads','2026-09-16 10:53:43.107');
+('cmu0zo62p001ui90mkg55ezhc','cod-payments.png','/uploads/1789374994363-cod-payments.png','image/png',9968,NULL,NULL,NULL,'uploads','2026-09-14 08:36:34.370');
 
 -- Menu: 4 rows
 INSERT INTO `Menu` (`id`, `name`, `location`, `items`, `status`, `updatedAt`) VALUES
-('cmtzd3p4t005a670t227w0dsq','Main Navigation','header','[{"label":"Home","labelBn":"হোম","href":"/"},{"label":"Women","labelBn":"মহিলা","href":"/category/women","children":[{"label":"Saree","labelBn":"শাড়ি","href":"/category/saree"},{"label":"Kurti","labelBn":"কুর্তি","href":"/category/kurti"},{"label":"Three Piece","labelBn":"থ্রি-পিস","href":"/category/three-piece"},{"label":"Salwar Kameez","labelBn":"সালোয়ার কামিজ","href":"/category/salwar-kameez"},{"label":"Lehenga","labelBn":"লেহেঙ্গা","href":"/category/lehenga"},{"label":"Hijab & Abaya","labelBn":"হিজাব ও আবায়া","href":"/category/hijab-abaya"}]},{"label":"Men","labelBn":"পুরুষ","href":"/category/men","children":[{"label":"Panjabi","labelBn":"পাঞ্জাবি","href":"/category/panjabi"},{"label":"Shirt","labelBn":"শার্ট","href":"/category/shirt"},{"label":"T-Shirt & Polo","href":"/category/t-shirt-polo"},{"label":"Pant & Trouser","href":"/category/pant-trouser"}]},{"label":"Kids","labelBn":"শিশু","href":"/category/kids"},{"label":"Accessories","labelBn":"এক্সেসরিজ","href":"/category/accessories"},{"label":"Jewellery","labelBn":"গহনা","href":"/category/jewellery"},{"label":"Blog","labelBn":"ব্লগ","href":"/blog"},{"label":"Contact","labelBn":"যোগাযোগ","href":"/pages/contact"}]','active','2026-09-13 05:17:01.565'),
+('cmtzd3p4t005a670t227w0dsq','Main Navigation','header','[{"label":"Home","labelBn":"হোম","href":"/"},{"label":"Women","labelBn":"মহিলা","href":"/category/women","children":[{"label":"Saree","labelBn":"শাড়ি","href":"/category/saree"},{"label":"Kurti","labelBn":"কুর্তি","href":"/category/kurti"},{"label":"Three Piece","labelBn":"থ্রি-পিস","href":"/category/three-piece"},{"label":"Salwar Kameez","labelBn":"সালোয়ার কামিজ","href":"/category/salwar-kameez"},{"label":"Lehenga","labelBn":"লেহেঙ্গা","href":"/category/lehenga"},{"label":"Hijab & Abaya","labelBn":"হিজাব ও আবায়া","href":"/category/hijab-abaya"}]},{"label":"Men","labelBn":"পুরুষ","href":"/category/men","children":[{"label":"Panjabi","labelBn":"পাঞ্জাবি","href":"/category/panjabi"},{"label":"Shirt","labelBn":"শার্ট","href":"/category/shirt"},{"label":"T-Shirt & Polo","href":"/category/t-shirt-polo"},{"label":"Pant & Trouser","href":"/category/pant-trouser"}]},{"label":"Kids","labelBn":"শিশু","href":"/category/kids"},{"label":"Accessories","labelBn":"এক্সেসরিজ","href":"/category/accessories"},{"label":"Jewellery","labelBn":"গহনা","href":"/category/jewellery"},{"label":"Blog","labelBn":"ব্লগ","href":"/blog"},{"label":"Contact","labelBn":"যোগাযোগ","href":"/pages/contact"}]','active','2026-09-16 11:12:17.875'),
 ('cmtzd3p4t005b670tljogrsgm','Customer Service','footer-1','[{"label":"About Us","href":"/pages/about"},{"label":"Contact Us","href":"/pages/contact"},{"label":"Track Order","href":"/track"},{"label":"Shipping Info","href":"/pages/shipping"},{"label":"Returns & Refunds","href":"/pages/returns"},{"label":"FAQ","href":"/pages/faq"}]','active','2026-09-13 05:17:01.565'),
 ('cmtzd3p4t005c670ttk9vyzj2','Shop Links','footer-2','[{"label":"All Products","href":"/shop"},{"label":"New Arrivals","href":"/shop?sort=newest"},{"label":"Best Sellers","href":"/shop?sort=popular"},{"label":"Sale Items","href":"/shop?sale=1"},{"label":"Blog","href":"/blog"}]','active','2026-09-13 05:17:01.565'),
 ('cmtzd3p4t005d670tdztws658','Legal','footer-3','[{"label":"Privacy Policy","href":"/pages/privacy-policy"},{"label":"Terms & Conditions","href":"/pages/terms"},{"label":"Refund Policy","href":"/pages/returns"}]','active','2026-09-13 05:17:01.565');
@@ -1363,7 +1361,7 @@ INSERT INTO `TaxRate` (`id`, `name`, `country`, `rate`, `inclusive`, `status`) V
 
 -- User: 11 rows
 INSERT INTO `User` (`id`, `email`, `passwordHash`, `name`, `phone`, `role`, `avatar`, `status`, `lastLoginAt`, `createdAt`, `updatedAt`) VALUES
-('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-16 10:56:51.296','2026-09-13 05:16:53.199','2026-09-16 10:56:51.298'),
+('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-16 11:10:22.109','2026-09-13 05:16:53.199','2026-09-16 11:10:22.111'),
 ('cmtzd3itz0001670t7aq4m1y7','manager@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Store Manager','+8801700000002','MANAGER',NULL,'active',NULL,'2026-09-13 05:16:53.400','2026-09-13 05:16:53.400'),
 ('cmtzd3iwt0002670tzcju4d4d','editor@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Content Editor',NULL,'EDITOR',NULL,'active',NULL,'2026-09-13 05:16:53.501','2026-09-13 05:16:53.501'),
 ('cmtzd3nnk003e670t3jmaj1w1','rahim@example.com','$2a$10$aH29OSWJSP7lXgRL4Q7EOelB4FHg43g1gk4mAcJEqfZAy2TeQSrUu','Rahim Ahmed','+8801711000001','CUSTOMER',NULL,'active','2026-09-13 08:19:17.280','2026-09-13 05:16:59.649','2026-09-13 08:19:17.281'),

@@ -177,6 +177,30 @@ npm run db:check-url -- --build \
   --db u860892017_bdmarket
 ```
 
+### Uploaded images and redeploys — set `UPLOAD_DIR`
+
+**Do this before you rely on any uploaded image.** Hostinger builds into
+`~/domains/{domain}/hbuilds/current/`, which is a symlink the deploy swaps for a fresh directory.
+Anything written under the application folder is therefore **deleted on the next push** — the
+database keeps the `/uploads/...` paths, so the header logo, payment logos, brand marks and every
+product photo turn into broken images.
+
+Point uploads at a folder outside the application:
+
+```bash
+mkdir -p ~/uploads && chmod 775 ~/uploads
+```
+
+Then add to **hPanel → website dashboard → Environment variables** (saving triggers a redeploy):
+
+```
+UPLOAD_DIR=/home/youruser/uploads
+```
+
+Use the absolute path, not `~`. Nothing else changes — URLs stay `/uploads/<file>`, only the
+directory they resolve to moves. The admin **Media Library** shows a warning banner whenever uploads
+are still landing somewhere a deploy will delete, so you will see this rather than discover it later.
+
 ### Creating the tables
 
 Once `DATABASE_URL` is set and `/api/health` reports `schema-not-pushed`, the connection is working
