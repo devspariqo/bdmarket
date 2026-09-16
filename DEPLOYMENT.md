@@ -201,6 +201,36 @@ Use the absolute path, not `~`. Nothing else changes — URLs stay `/uploads/<fi
 directory they resolve to moves. The admin **Media Library** shows a warning banner whenever uploads
 are still landing somewhere a deploy will delete, so you will see this rather than discover it later.
 
+### Outbound SMTP is usually blocked — read this before debugging email
+
+Order confirmations are sent from your own mail server over SMTP, and **most shared hosts block
+outbound SMTP**, either entirely or on the standard ports. Hostinger is no exception. The symptom is
+exactly what a wrong password looks like: the settings save fine, orders go through, and no email
+arrives.
+
+Work through it in this order:
+
+1. **Open Settings → Email.** The delivery panel at the top shows the server, port and encryption the
+   app actually resolved from your settings — including the port it derived, which is a common source
+   of surprise — plus the outcome of the last real send.
+2. **Press "Test connection".** This opens a connection and authenticates without sending. It
+   separates "the settings are wrong" from "the host will not let us out":
+   - *The SMTP server rejected the login* — the username or password is wrong. Gmail and Outlook
+     require an **app password**, not your normal account password.
+   - *Could not reach host:port* — the host or port is wrong, **or the port is blocked**. Try 587 with
+     STARTTLS, then 465 with SSL, then 2525 if your provider offers it.
+   - *Could not be resolved* — a typo in the host.
+3. **Press "Send test".** This is the only way to catch the faults that appear *after* connecting: a
+   From address the server refuses to send as, or a relay restriction. Use a From address on the same
+   domain as the mailbox you authenticated with.
+4. **If every port fails, the host blocks SMTP.** Then either ask Hostinger to open outbound SMTP, or
+   use a transactional provider that offers an SMTP relay on an allowed port (Brevo, Mailgun, Resend
+   and similar all publish the host and port to use). Point SMTP Host, Port and the credentials at
+   that service instead — no code change is needed, because everything is read from the database.
+
+Every attempt is recorded on the order's own timeline in the admin, so a failed notification shows up
+next to the order it belongs to rather than only in a server log.
+
 ### Creating the tables
 
 Once `DATABASE_URL` is set and `/api/health` reports `schema-not-pushed`, the connection is working
