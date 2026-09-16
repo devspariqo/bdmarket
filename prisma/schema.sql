@@ -6,7 +6,7 @@ CREATE TABLE `User` (
     `name` VARCHAR(191) NOT NULL,
     `phone` VARCHAR(191) NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'CUSTOMER',
-    `avatar` VARCHAR(191) NULL,
+    `avatar` TEXT NULL,
     `status` VARCHAR(191) NOT NULL DEFAULT 'active',
     `lastLoginAt` DATETIME(3) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

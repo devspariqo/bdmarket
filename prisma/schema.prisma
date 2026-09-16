@@ -22,7 +22,7 @@ model User {
   name         String
   phone        String?
   role         String    @default("CUSTOMER")
-  avatar       String?
+  avatar       String? @db.Text
   status       String    @default("active") // active | suspended
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
