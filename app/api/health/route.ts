@@ -126,6 +126,64 @@ function diagnose(err: unknown): Diagnosis {
   };
 }
 
+/**
+ * Columns that must be TEXT on MySQL, and the symptom when they are not.
+ *
+ * Prisma maps a plain `String` to VARCHAR(191) on MySQL, and SQLite does not
+ * enforce that limit — so over-long values worked in development and were
+ * silently truncated in production. When the value is JSON the truncation makes
+ * it unparseable and the interface renders empty, which is how the menu, the
+ * payment logos and the product images all appeared broken at once.
+ *
+ * This is a deliberate subset: the columns whose truncation produces a visible,
+ * reported failure. `prisma/fix-column-lengths.sql` widens 80 in total.
+ */
+const CRITICAL_TEXT_COLUMNS: { table: string; column: string; symptom: string }[] = [
+  { table: 'Menu', column: 'items', symptom: 'a saved menu renders empty' },
+  { table: 'Setting', column: 'value', symptom: 'long settings such as the payment logos render empty' },
+  { table: 'Product', column: 'images', symptom: 'product images do not appear' },
+  { table: 'Product', column: 'variants', symptom: 'product variants are lost' },
+  { table: 'Product', column: 'attributes', symptom: 'product attributes are lost' },
+  { table: 'Product', column: 'description', symptom: 'descriptions are cut off' },
+  { table: 'Post', column: 'content', symptom: 'blog posts are cut off' },
+  { table: 'Page', column: 'content', symptom: 'pages are cut off' },
+];
+
+/**
+ * Report which critical columns are still narrow.
+ *
+ * Only meaningful on MySQL: SQLite has no information_schema and does not enforce
+ * length limits at all, so `checked: false` there is expected rather than a
+ * failure. Never throws — a health endpoint that can break is not a health
+ * endpoint.
+ */
+async function checkColumnTypes(): Promise<{ checked: boolean; needsMigration: string[] }> {
+  if (!/^mysql/i.test(process.env.DATABASE_URL || '')) return { checked: false, needsMigration: [] };
+
+  try {
+    const rows = await prisma.$queryRaw<{ TABLE_NAME: string; COLUMN_NAME: string; DATA_TYPE: string }[]>`
+      SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE
+      FROM information_schema.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+    `;
+    const actual = new Map(
+      rows.map((r) => [`${r.TABLE_NAME}.${r.COLUMN_NAME}`, String(r.DATA_TYPE).toLowerCase()])
+    );
+
+    const needsMigration = CRITICAL_TEXT_COLUMNS.filter((c) => {
+      const type = actual.get(`${c.table}.${c.column}`);
+      // Only flag a column we actually found and that is still a bounded string.
+      // A missing row means the table is absent, which the connection check
+      // already reports.
+      return type !== undefined && (type === 'varchar' || type === 'char');
+    }).map((c) => `${c.table}.${c.column} — ${c.symptom}`);
+
+    return { checked: true, needsMigration };
+  } catch {
+    return { checked: false, needsMigration: [] };
+  }
+}
+
 export async function GET() {
   const startedAt = Date.now();
 
@@ -144,6 +202,7 @@ export async function GET() {
   try {
     // Cheapest possible round trip that still proves the schema is present.
     const settings = await prisma.setting.count();
+    const columns = await checkColumnTypes();
 
     return NextResponse.json({
       ok: true,
@@ -153,6 +212,20 @@ export async function GET() {
       siteUrl: process.env.NEXT_PUBLIC_SITE_URL || null,
       latencyMs: Date.now() - startedAt,
       build: buildInfo(),
+      /**
+       * Whether the VARCHAR(191) migration has been applied.
+       *
+       * `checked: false` on SQLite, where the limit does not exist. On MySQL,
+       * anything in `needsMigration` is silently truncating data right now —
+       * run prisma/fix-column-lengths.sql and re-save the affected records.
+       */
+      schema: {
+        checked: columns.checked,
+        needsMigration: columns.needsMigration,
+        hint: columns.needsMigration.length
+          ? 'These columns are still VARCHAR(191) and are truncating data. Run prisma/fix-column-lengths.sql in phpMyAdmin, then re-save the affected records.'
+          : undefined,
+      },
     });
   } catch (err) {
     console.error('[health] database check failed:', err);
