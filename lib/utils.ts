@@ -31,9 +31,28 @@ export function discountPercent(price: number, compare?: number | null) {
 
 // ─── Date helpers ───
 
-export function formatDate(d: Date | string, style: 'short' | 'long' | 'datetime' = 'short') {
-  const date = typeof d === 'string' ? new Date(d) : d;
-  if (isNaN(date.getTime())) return '—';
+/**
+ * Coerce whatever a caller hands us into a usable Date, or null.
+ *
+ * These helpers get called with data that has been through JSON: a Prisma row
+ * serialised by a route handler, a value typed into a form, or a field that was
+ * simply absent. `formatDate(undefined)` used to throw
+ * "Cannot read properties of undefined (reading 'getTime')" and take the whole
+ * route down with it — which is how a successful media upload ended at the error
+ * boundary. Returning null lets the caller show a dash instead.
+ */
+function toDate(d: Date | string | number | null | undefined): Date | null {
+  if (d === null || d === undefined || d === '') return null;
+  const date = d instanceof Date ? d : new Date(d);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+export function formatDate(
+  d: Date | string | number | null | undefined,
+  style: 'short' | 'long' | 'datetime' = 'short'
+) {
+  const date = toDate(d);
+  if (!date) return '—';
   if (style === 'long')
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   if (style === 'datetime')
@@ -43,8 +62,9 @@ export function formatDate(d: Date | string, style: 'short' | 'long' | 'datetime
   return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export function timeAgo(d: Date | string) {
-  const date = typeof d === 'string' ? new Date(d) : d;
+export function timeAgo(d: Date | string | number | null | undefined) {
+  const date = toDate(d);
+  if (!date) return '—';
   const secs = Math.floor((Date.now() - date.getTime()) / 1000);
   if (secs < 60) return 'just now';
   const mins = Math.floor(secs / 60);

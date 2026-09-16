@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import prisma from '@/lib/db';
 import { getSiteConfig } from '@/lib/settings';
 import ProductCard from '@/components/store/ProductCard';
-import { formatNumber } from '@/lib/utils';
+import { formatNumber, cn } from '@/lib/utils';
 
 export const revalidate = 60;
 
@@ -40,8 +40,20 @@ export default async function BrandPage({ params }: { params: { slug: string } }
             <span className="font-semibold text-ink-800">{brand.name}</span>
           </nav>
           <div className="flex items-center gap-4">
-            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-600 font-display text-2xl font-bold text-white shadow-lg">
-              {brand.name.charAt(0)}
+            {/* The uploaded logo when the brand has one. This always drew the
+                initial, so a logo set in the admin never appeared here. */}
+            <span
+              className={cn(
+                'flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl shadow-lg',
+                brand.logo ? 'border border-ink-200 bg-white p-2' : 'bg-brand-600 font-display text-2xl font-bold text-white'
+              )}
+            >
+              {brand.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain" />
+              ) : (
+                brand.name.charAt(0)
+              )}
             </span>
             <div>
               <h1 className="font-display text-3xl font-bold text-ink-900">{brand.name}</h1>

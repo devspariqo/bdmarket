@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { UPLOAD_DIR, UPLOAD_URL_PREFIX } from '@/lib/uploads';
 
 /**
  * POST /api/admin/media
@@ -37,14 +38,14 @@ export async function POST(req: Request) {
 
     const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
     const filename = `${Date.now()}-${safe}`;
-    const dir = path.join(process.cwd(), 'public', 'uploads');
+    const dir = UPLOAD_DIR;
     await mkdir(dir, { recursive: true });
     await writeFile(path.join(dir, filename), bytes);
 
     const media = await prisma.media.create({
       data: {
         filename: file.name,
-        url: `/uploads/${filename}`,
+        url: `${UPLOAD_URL_PREFIX}${filename}`,
         mimeType: file.type || 'application/octet-stream',
         size: file.size,
         folder: 'uploads',
@@ -83,11 +84,13 @@ export async function DELETE(req: Request) {
   if (!media) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   // Best-effort removal of locally uploaded files
-  if (media.url.startsWith('/uploads/')) {
+  if (media.url.startsWith(UPLOAD_URL_PREFIX)) {
     try {
       const { unlink } = await import('fs/promises');
       const path = await import('path');
-      await unlink(path.join(process.cwd(), 'public', media.url));
+      // Resolve against the configured upload dir, not `public/` — with
+      // UPLOAD_DIR set they are different places and the file would be orphaned.
+      await unlink(path.join(UPLOAD_DIR, media.url.slice(UPLOAD_URL_PREFIX.length)));
     } catch {
       /* file already gone — ignore */
     }

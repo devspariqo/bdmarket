@@ -28,16 +28,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/admin/login');
   }
 
-  const [config, pendingOrders, pendingReviews, lowStock] = await Promise.all([
+  const [config, pendingOrders, pendingReviews, lowStock, account] = await Promise.all([
     getSiteConfig(),
     prisma.order.count({ where: { status: { in: ['PENDING', 'PROCESSING'] } } }),
     prisma.review.count({ where: { status: 'pending' } }),
     prisma.product.count({ where: { stock: { lte: 5 } } }),
+    // The avatar lives in the database, not the JWT, so a freshly uploaded photo
+    // shows up without the user having to sign out and back in.
+    prisma.user.findUnique({ where: { id: session.id }, select: { avatar: true } }),
   ]);
 
   return (
     <AdminShell
-      user={{ name: session.name, email: session.email, role: session.role }}
+      user={{ name: session.name, email: session.email, role: session.role, avatar: account?.avatar ?? null }}
       config={{ siteName: config.siteName, logo: config.logo }}
       badges={{ orders: pendingOrders, reviews: pendingReviews, stock: lowStock }}
     >

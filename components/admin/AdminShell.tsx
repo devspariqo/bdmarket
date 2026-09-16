@@ -21,7 +21,7 @@ export default function AdminShell({
   children, user, config, badges,
 }: {
   children: React.ReactNode;
-  user: { name: string; email: string; role: string };
+  user: { name: string; email: string; role: string; avatar?: string | null };
   config: { siteName: string; logo: string };
   badges: { orders: number; reviews: number; stock: number };
 }) {
@@ -296,8 +296,14 @@ export default function AdminShell({
                   onClick={() => setUserMenu(!userMenu)}
                   className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition hover:bg-ink-100"
                 >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-[13px] font-bold text-brand-700">
-                    {user.name.charAt(0)}
+                  {/* The uploaded photo when there is one, otherwise the initial. */}
+                  <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-brand-100 text-[13px] font-bold text-brand-700">
+                    {user.avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={user.avatar} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      user.name.charAt(0)
+                    )}
                   </span>
                   <span className="hidden text-left sm:block">
                     <span className="block text-[13px] font-bold leading-tight text-ink-900">{user.name}</span>

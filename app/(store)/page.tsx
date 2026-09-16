@@ -4,6 +4,7 @@ import { ArrowRight, Sparkles, TrendingUp, Tag, Zap, Truck, ShieldCheck } from '
 import prisma from '@/lib/db';
 import { getSiteConfig } from '@/lib/settings';
 import ProductCard from '@/components/store/ProductCard';
+import { CARD_PRODUCT_SELECT } from '@/lib/product-fields';
 import { parseJSON, formatPrice, cn } from '@/lib/utils';
 
 export const revalidate = 60;
@@ -31,25 +32,25 @@ export default async function HomePage() {
         where: { status: 'published', featured: true },
         take: 8,
         orderBy: { soldCount: 'desc' },
-        include: { category: { select: { name: true, slug: true } }, brand: { select: { name: true, slug: true } } },
+        select: CARD_PRODUCT_SELECT,
       }),
       prisma.product.findMany({
         where: { status: 'published', newArrival: true },
         take: 8,
         orderBy: { createdAt: 'desc' },
-        include: { category: { select: { name: true, slug: true } }, brand: { select: { name: true, slug: true } } },
+        select: CARD_PRODUCT_SELECT,
       }),
       prisma.product.findMany({
         where: { status: 'published', bestseller: true },
         take: 4,
         orderBy: { soldCount: 'desc' },
-        include: { category: { select: { name: true, slug: true } }, brand: { select: { name: true, slug: true } } },
+        select: CARD_PRODUCT_SELECT,
       }),
       prisma.product.findMany({
         where: { status: 'published', comparePrice: { not: null } },
         take: 8,
         orderBy: { soldCount: 'desc' },
-        include: { category: { select: { name: true, slug: true } }, brand: { select: { name: true, slug: true } } },
+        select: CARD_PRODUCT_SELECT,
       }),
       prisma.post.findMany({ where: { status: 'published' }, take: 3, orderBy: { publishedAt: 'desc' } }),
       prisma.brand.findMany({ where: { status: 'active', featured: true }, take: 8 }),

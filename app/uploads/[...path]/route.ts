@@ -3,6 +3,7 @@ import { createReadStream } from 'fs';
 import { stat } from 'fs/promises';
 import path from 'path';
 import { Readable } from 'stream';
+import { UPLOAD_DIR } from '@/lib/uploads';
 
 /**
  * GET /uploads/<filename>
@@ -20,9 +21,10 @@ import { Readable } from 'stream';
  *   - behind a reverse proxy (Nginx / Apache)
  *
  * It also lets us set correct caching headers and block path-traversal attempts.
+ *
+ * The directory itself comes from `lib/uploads.ts` so the upload route and this
+ * one can never disagree about where files live.
  */
-
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
 
 /** Extensions we are willing to serve, mapped to their content type. */
 const MIME: Record<string, string> = {

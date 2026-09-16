@@ -22,6 +22,8 @@ export async function POST(req: Request) {
     phone: body.phone || null,
     role: body.role || 'EDITOR',
     status: body.status || 'active',
+    // The column existed and the list rendered it, but nothing ever wrote to it.
+    avatar: body.avatar || null,
   };
   if (body.password) data.passwordHash = await hashPassword(String(body.password));
 
@@ -30,7 +32,7 @@ export async function POST(req: Request) {
       const user = await prisma.user.update({
         where: { id: body.id },
         data,
-        select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+        select: { id: true, name: true, email: true, role: true, status: true, avatar: true, createdAt: true },
       });
       return NextResponse.json({ ok: true, user });
     }
@@ -41,7 +43,7 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.create({
       data: data as any,
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, status: true, avatar: true, createdAt: true },
     });
     await prisma.auditLog.create({
       data: { userId: session.id, action: 'user.create', entity: 'User', entityId: user.id },
@@ -72,7 +74,7 @@ export async function PATCH(req: Request) {
   const user = await prisma.user.update({
     where: { id },
     data: { status: status || 'active' },
-    select: { id: true, name: true, email: true, role: true, status: true },
+    select: { id: true, name: true, email: true, role: true, status: true, avatar: true },
   });
   return NextResponse.json({ ok: true, user });
 }

@@ -25,6 +25,27 @@ function humanSize(bytes: number | null) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
+/**
+ * Normalise a row from `/api/admin/media` into this component's `Media` shape.
+ *
+ * The route returns the Prisma record, which carries `createdAt`; the type here
+ * (and the server page that builds the initial list) uses `created`. Prepending
+ * the raw row left `created` undefined, and `formatDate(undefined)` then threw
+ * mid-render — so a *successful* upload landed on the error boundary.
+ */
+function toRow(m: any): Media {
+  return {
+    id: m.id,
+    filename: m.filename,
+    url: m.url,
+    mimeType: m.mimeType ?? null,
+    size: m.size ?? null,
+    alt: m.alt ?? null,
+    folder: m.folder ?? 'uploads',
+    created: m.created ?? m.createdAt ?? new Date().toISOString(),
+  };
+}
+
 export default function MediaLibrary({ initial }: { initial: Media[] }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -70,7 +91,7 @@ export default function MediaLibrary({ initial }: { initial: Media[] }) {
         const res = await fetch('/api/admin/media', { method: 'POST', body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || `Failed to upload ${file.name}`);
-        setList((p) => [data.media, ...p]);
+        setList((p) => [toRow(data.media), ...p]);
       }
       router.refresh();
     } catch (e: any) {
@@ -92,7 +113,7 @@ export default function MediaLibrary({ initial }: { initial: Media[] }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to add');
-      setList((p) => [data.media, ...p]);
+      setList((p) => [toRow(data.media), ...p]);
       setUrlValue('');
       setUrlPanel(false);
       router.refresh();

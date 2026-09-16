@@ -7,6 +7,7 @@ import {
   Trash2, UserCog, UserRound, X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import ImageUploadField from '@/components/admin/settings/ImageUploadField';
 
 type U = {
   id: string;
@@ -29,6 +30,9 @@ const EMPTY = {
   role: 'EDITOR',
   status: 'active',
   password: '',
+  /** Avatar URL. The column already existed and the list rendered it, but there
+   *  was no field to set it, so every admin fell back to initials. */
+  avatar: '',
 };
 
 const ROLE_TONE: Record<string, string> = {
@@ -210,6 +214,7 @@ export default function UserManager({ users, currentUserId }: { users: U[]; curr
                               role: u.role,
                               status: u.status,
                               password: '',
+                              avatar: u.avatar || '',
                             });
                           }}
                           className="grid h-8 w-8 place-items-center rounded-lg text-ink-500 transition hover:bg-blue-50 hover:text-blue-700"
@@ -289,6 +294,17 @@ export default function UserManager({ users, currentUserId }: { users: U[]; curr
                   onChange={(e) => setPanel({ ...panel, phone: e.target.value })}
                   className="input"
                   placeholder="01700000000"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <ImageUploadField
+                  value={panel.avatar}
+                  onChange={(url) => setPanel({ ...panel, avatar: url })}
+                  label="Profile photo"
+                  maxWidth={400}
+                  previewClassName="h-16 w-16 rounded-full"
+                  hint="Shown as the rounded avatar beside your name in the top-right of the admin. A square image works best; without one, your initials are used."
                 />
               </div>
 
