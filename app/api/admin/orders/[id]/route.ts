@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
+import { notifyOrderStatus } from '@/lib/notifications';
 
 /**
  * PATCH /api/admin/orders/[id]
@@ -63,6 +64,21 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     // Mark COD orders as paid on delivery
     if (data.status === 'DELIVERED' && existing.paymentMethod === 'cod' && updated.paymentStatus === 'unpaid') {
       await prisma.order.update({ where: { id: params.id }, data: { paymentStatus: 'paid' } });
+    }
+
+    /**
+     * Notify the customer and the store — but only on a real transition.
+     *
+     * Re-saving the same status is a no-op elsewhere in this handler, and
+     * without the guard the customer would get a second "your order has shipped"
+     * email every time someone touched the record.
+     */
+    if (existing.status !== data.status) {
+      try {
+        await notifyOrderStatus(params.id, String(data.status));
+      } catch (e: any) {
+        console.error('[orders] notification failed:', e?.message || e);
+      }
     }
   } else if (adminNote !== undefined) {
     await prisma.orderEvent.create({

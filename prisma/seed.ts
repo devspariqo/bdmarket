@@ -578,6 +578,8 @@ async function main() {
     { group: 'email', key: 'email_order_confirm', value: 'true', type: 'boolean', label: 'Send Order Confirmation' },
     { group: 'email', key: 'email_order_shipped', value: 'true', type: 'boolean', label: 'Send Shipping Notification' },
     { group: 'email', key: 'email_footer_text', value: 'BD Market — House 12, Road 5, Dhanmondi, Dhaka 1205, Bangladesh', type: 'textarea', label: 'Email Footer' },
+    { group: 'email', key: 'email_notify_customer', value: 'true', type: 'boolean', label: 'Email the Customer' },
+    { group: 'email', key: 'email_notify_admin', value: 'true', type: 'boolean', label: 'Email the Store' },
 
     // SMS gateway
     { group: 'sms', key: 'sms_enabled', value: 'false', type: 'boolean', label: 'Enable SMS' },
@@ -588,6 +590,8 @@ async function main() {
     { group: 'sms', key: 'sms_order_confirm', value: 'true', type: 'boolean', label: 'SMS on Order Confirm' },
     { group: 'sms', key: 'sms_order_shipped', value: 'true', type: 'boolean', label: 'SMS on Shipment' },
     { group: 'sms', key: 'sms_order_delivered', value: 'true', type: 'boolean', label: 'SMS on Delivery' },
+    { group: 'sms', key: 'sms_notify_customer', value: 'true', type: 'boolean', label: 'SMS the Customer' },
+    { group: 'sms', key: 'sms_notify_admin', value: 'true', type: 'boolean', label: 'SMS the Store' },
 
     // Courier & delivery
     { group: 'courier', key: 'courier_default', value: 'manual', type: 'select', label: 'Default Courier' },

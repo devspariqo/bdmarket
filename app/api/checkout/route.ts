@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/db';
 import { getCustomerSession } from '@/lib/auth';
 import { orderNumber } from '@/lib/utils';
+import { notifyOrderPlaced } from '@/lib/notifications';
 
 export async function POST(req: Request) {
   try {
@@ -168,6 +169,20 @@ export async function POST(req: Request) {
     // Clear cart
     await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
     await prisma.cart.update({ where: { id: cart.id }, data: { couponCode: null } });
+
+    /**
+     * Notify the customer and the store.
+     *
+     * Deliberately after the order is committed and wrapped defensively: the
+     * order exists, so a mail server that is down must not turn a successful
+     * checkout into a 500 and a lost sale. `notifyOrderPlaced` has its own
+     * timeouts and records the outcome on the order timeline.
+     */
+    try {
+      await notifyOrderPlaced(order.id);
+    } catch (e: any) {
+      console.error('[checkout] notifications failed:', e?.message || e);
+    }
 
     return NextResponse.json({
       ok: true,

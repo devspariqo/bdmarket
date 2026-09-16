@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { requireAdmin } from '@/lib/auth';
+import { notifyOrderStatus } from '@/lib/notifications';
 
 /**
  * POST /api/admin/orders/bulk
@@ -35,6 +36,17 @@ export async function POST(req: Request) {
     await prisma.auditLog.create({
       data: { userId: session.id, action: 'order.bulk-status', entity: 'Order', meta: JSON.stringify({ ids, status }) },
     });
+
+    /**
+     * Notify after the update, deliberately without awaiting.
+     *
+     * A bulk action can cover dozens of orders and each notification is a mail
+     * round trip; awaiting them would time the request out. `notifyOrderStatus`
+     * bounds each attempt with its own deadline and writes the outcome to that
+     * order's timeline, so a failure is still visible on the order.
+     */
+    void Promise.allSettled(ids.map((id) => notifyOrderStatus(id, status)));
+
     return NextResponse.json({ ok: true, count: ids.length });
   }
 

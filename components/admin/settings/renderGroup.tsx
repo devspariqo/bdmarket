@@ -181,6 +181,9 @@ export const SETTINGS_META: Record<string, Meta> = {
       email_order_confirm: 'Sent as soon as an order is placed.',
       email_order_shipped: 'Sent when an order is marked shipped, including the tracking number if one is set.',
       email_footer_text: 'Appended to the bottom of every email. Keep it to the essentials.',
+      email_notify_customer: 'The order confirmation the buyer receives.',
+      email_notify_admin:
+        'Goes to the Support Email set under Settings → General. Leave this on so orders still reach you if the customer mistyped their address.',
     },
     defaults: {
       email_enabled: { value: 'true', type: 'boolean', label: 'Enable Transactional Email' },
@@ -189,6 +192,8 @@ export const SETTINGS_META: Record<string, Meta> = {
       smtp_encryption: { value: 'tls', type: 'select', label: 'Encryption' },
       smtp_username: { value: '', type: 'text', label: 'SMTP Username' },
       smtp_password: { value: '', type: 'text', label: 'SMTP Password' },
+      email_notify_customer: { value: 'true', type: 'boolean', label: 'Email the Customer' },
+      email_notify_admin: { value: 'true', type: 'boolean', label: 'Email the Store' },
     },
     options: {
       smtp_encryption: [
@@ -212,12 +217,16 @@ export const SETTINGS_META: Record<string, Meta> = {
       sms_order_confirm: 'Sent when an order is placed.',
       sms_order_shipped: 'Sent when an order is handed to the courier.',
       sms_order_delivered: 'Sent when the order is marked delivered.',
+      sms_notify_customer: 'The buyer gets a short confirmation on their own number.',
+      sms_notify_admin: 'Goes to the Hotline number set under Settings → General, so you hear about orders away from a screen.',
     },
     defaults: {
       sms_provider: { value: 'greenweb', type: 'select', label: 'SMS Gateway' },
       sms_api_key: { value: '', type: 'text', label: 'API Key' },
       sms_api_url: { value: '', type: 'text', label: 'Custom API Endpoint' },
       sms_order_delivered: { value: 'true', type: 'boolean', label: 'SMS on Delivery' },
+      sms_notify_customer: { value: 'true', type: 'boolean', label: 'SMS the Customer' },
+      sms_notify_admin: { value: 'true', type: 'boolean', label: 'SMS the Store' },
     },
     options: {
       sms_provider: [
