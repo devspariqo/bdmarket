@@ -523,42 +523,42 @@ model Newsletter {
 
 model LandingPage {
   id           String   @id @default(cuid())
-  title        String
+  title        String @db.Text
   slug         String   @unique
   // First path segment. The default gives /collection/<slug>, and it is editable
   // so a campaign can live under /offer, /eid, /ramadan and so on.
   parentSlug   String   @default("collection")
   status       String   @default("draft") // draft | published
-  blocks       String // JSON block tree
+  blocks       String @db.LongText // JSON block tree
 
   // SEO. With no header or footer, meta is the only thing describing the page to
   // a crawler or a social preview.
-  metaTitle    String?
-  metaDesc     String?
-  metaKeywords String?
-  ogImage      String?
-  canonical    String?
+  metaTitle    String? @db.Text
+  metaDesc     String? @db.Text
+  metaKeywords String? @db.Text
+  ogImage      String? @db.Text
+  canonical    String? @db.Text
   noIndex      Boolean  @default(false)
 
   // Tracking is per page, not global: a landing page usually carries its own
   // campaign tags and its own pixel.
-  gaId         String?
-  fbPixelId    String?
-  customHead   String?
-  customBody   String?
+  gaId         String? @db.Text
+  fbPixelId    String? @db.Text
+  customHead   String? @db.LongText
+  customBody   String? @db.LongText
 
   // Appearance
-  bgColor      String?
-  textColor    String?
-  fontFamily   String?
+  bgColor      String? @db.Text
+  textColor    String? @db.Text
+  fontFamily   String? @db.Text
   maxWidth     Int      @default(1100)
 
   // Embedded checkout
   checkoutEnabled Boolean @default(true)
-  checkoutHeading String?
-  checkoutFields  String? // JSON: which fields to collect, and which are required
-  checkoutButton  String?
-  thankYouNote    String?
+  checkoutHeading String? @db.Text
+  checkoutFields  String? @db.Text // JSON: which fields to collect, and which are required
+  checkoutButton  String? @db.Text
+  thankYouNote    String? @db.Text
 
   views        Int      @default(0)
   orders       Order[]

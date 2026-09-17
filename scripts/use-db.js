@@ -49,6 +49,47 @@ function syncColumnTypes(src, provider) {
   const strip = provider === 'sqlite';
 
   if (strip) {
+    /**
+     * Refuse to strip an annotation the list cannot put back.
+     *
+     * Stripping is a regex sweep, but restoring reads COLUMN_TYPES — so anything
+     * annotated after that list was last generated would be removed here and
+     * never restored. Switching to SQLite and back would then leave the column as
+     * VARCHAR(191), which on MySQL truncates long values and, when they are JSON,
+     * makes the UI render empty. That is exactly what happened to
+     * `LandingPage.blocks`, and it is silent until a page goes blank in
+     * production. Failing loudly here costs one command.
+     */
+    const missing = [];
+    let model = null;
+    for (const line of src.split('\n')) {
+      const m = line.match(/^model\s+(\w+)\s*\{/);
+      if (m) {
+        model = m[1];
+        continue;
+      }
+      if (/^\}/.test(line)) {
+        model = null;
+        continue;
+      }
+      if (!model) continue;
+      const f = line.match(/^\s+(\w+)\s+String\??\s+@db\.(?:Text|LongText)/);
+      if (!f) continue;
+      if (!COLUMN_TYPES[model] || !COLUMN_TYPES[model][f[1]]) {
+        missing.push(`${model}.${f[1]}`);
+      }
+    }
+
+    if (missing.length) {
+      console.error(
+        `Refusing to switch to SQLite: these columns carry a native type that\n` +
+          `scripts/column-types.js does not know about, so it could not be restored:\n\n  ` +
+          missing.join('\n  ') +
+          `\n\nRun  npm run db:column-types  to refresh the list from the schema, then try again.`
+      );
+      process.exit(1);
+    }
+
     // Drop the annotation but keep any trailing comment where it is.
     return src.replace(/(\bString\??)\s+@db\.(?:Text|LongText)\b/g, '$1');
   }

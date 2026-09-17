@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Check, ChevronDown, Copy, ExternalLink, Eye, EyeOff, GripVertical, Loader2,
@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import {
   BLOCKS, BLOCK_ORDER, type Block, type BlockType, type FieldDef,
-  newBlock, landingPath,
+  newBlock, isKnownBlockType, landingPath,
 } from '@/lib/landing-blocks';
 import { cn, formatPrice } from '@/lib/utils';
 import LandingRenderer from '@/components/store/landing/LandingRenderer';
@@ -76,6 +76,28 @@ export default function LandingBuilder({
   const [err, setErr] = useState('');
   const [paletteOpen, setPaletteOpen] = useState(false);
 
+  /**
+   * The last state the server confirmed, as a string.
+   *
+   * Without this the Save button looks identical whether or not there is anything
+   * to save, so "did that save?" is unanswerable from the screen — which is the
+   * difference between a builder that feels broken and one that does not.
+   */
+  const [baseline, setBaseline] = useState(() => JSON.stringify(initial));
+  const dirty = useMemo(() => JSON.stringify(page) !== baseline, [page, baseline]);
+
+  // Warn before a reload or a closed tab discards unsaved work. Browsers ignore a
+  // custom message and show their own, so only the presence of a handler matters.
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [dirty]);
+
   // Drag state. Only the grip makes a row draggable, so the fields inside a block
   // row stay selectable with the mouse.
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -125,7 +147,14 @@ export default function LandingBuilder({
   function duplicateBlock(id: string) {
     const i = page.blocks.findIndex((b) => b.id === id);
     if (i < 0) return;
-    const copy = { ...page.blocks[i], id: newBlock(page.blocks[i].type).id };
+    // A fresh id, generated directly rather than via `newBlock`: that looks up
+    // BLOCKS[type].defaults(), which would throw on an unknown type.
+    const copy: Block = {
+      ...page.blocks[i],
+      id: `b${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`,
+      props: { ...page.blocks[i].props },
+      style: { ...(page.blocks[i].style || {}) },
+    };
     const next = [...page.blocks];
     next.splice(i + 1, 0, copy);
     setBlocks(next);
@@ -157,20 +186,51 @@ export default function LandingBuilder({
   async function save(nextStatus?: string) {
     setSaving(true);
     setErr('');
+
+    // What we are asking the server to store.
+    const intent: PageState = { ...page, status: nextStatus ?? page.status };
+
     try {
       const res = await fetch('/api/admin/landing-pages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...page, status: nextStatus ?? page.status }),
+        body: JSON.stringify(intent),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error || 'Could not save');
 
-      // Take the slug back from the server: it de-duplicates, so the saved value
-      // may differ from what was typed.
-      if (data?.page) {
-        patch({ slug: data.page.slug, status: data.page.status, parentSlug: data.page.parentSlug });
+      /**
+       * Reconcile with what actually came back.
+       *
+       * The server de-duplicates the slug and normalises the block list, so the
+       * saved state is not necessarily the state we sent. Adopting the response
+       * as the new baseline is what makes `dirty` trustworthy — and comparing the
+       * block count catches the case where a write silently dropped something,
+       * which is otherwise invisible until the page is reloaded.
+       */
+      const stored = data?.page;
+      const confirmed: PageState = stored
+        ? {
+            ...intent,
+            slug: stored.slug ?? intent.slug,
+            status: stored.status ?? intent.status,
+            parentSlug: stored.parentSlug ?? intent.parentSlug,
+            blocks: Array.isArray(stored.blocks) ? (stored.blocks as Block[]) : intent.blocks,
+          }
+        : intent;
+
+      setPage(confirmed);
+      setBaseline(JSON.stringify(confirmed));
+
+      const sentCount = intent.blocks.length;
+      const keptCount = confirmed.blocks.length;
+      if (keptCount !== sentCount) {
+        setErr(
+          `Saved, but ${sentCount - keptCount} block(s) were not stored. ` +
+            `The page now has ${keptCount}. Reload to see the saved version.`
+        );
       }
+
       setSaved(true);
       router.refresh();
       setTimeout(() => setSaved(false), 3000);
@@ -188,7 +248,18 @@ export default function LandingBuilder({
       {/* ── Toolbar ── */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <a href="/admin/landing-pages" className="btn-outline btn-sm" title="Back to the list">
+          <a
+            href="/admin/landing-pages"
+            className="btn-outline btn-sm"
+            title="Back to the list"
+            onClick={(e) => {
+              // A plain link navigates client-side, which `beforeunload` does not
+              // cover, so unsaved work would disappear without a word.
+              if (dirty && !confirm('You have unsaved changes. Leave this page and lose them?')) {
+                e.preventDefault();
+              }
+            }}
+          >
             <ArrowLeft className="h-3.5 w-3.5" />
           </a>
           <input
@@ -205,6 +276,11 @@ export default function LandingBuilder({
           >
             {page.status === 'published' ? 'Published' : 'Draft'}
           </span>
+          {dirty && (
+            <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[12px] font-bold text-amber-800">
+              Unsaved
+            </span>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -217,9 +293,14 @@ export default function LandingBuilder({
           >
             <ExternalLink className="h-3.5 w-3.5" /> View
           </a>
-          <button type="button" onClick={() => save()} disabled={saving} className="btn-outline btn-sm">
+          <button
+            type="button"
+            onClick={() => save()}
+            disabled={saving}
+            className={cn('btn-sm', dirty ? 'btn bg-brand-600 text-white hover:bg-brand-700' : 'btn-outline')}
+          >
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : saved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-            {saved ? 'Saved' : 'Save'}
+            {saving ? 'Saving…' : saved ? 'Saved' : dirty ? 'Save changes' : 'Save'}
           </button>
           {page.status === 'published' ? (
             <button type="button" onClick={() => save('draft')} disabled={saving} className="btn-outline btn-sm">
@@ -338,6 +419,11 @@ export default function LandingBuilder({
                         )}
                       >
                         {BLOCKS[b.type]?.label || b.type}
+                        {!isKnownBlockType(b.type) && (
+                          <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-bold text-amber-800">
+                            unknown — kept, not rendered
+                          </span>
+                        )}
                         <span className="ml-2 truncate font-normal text-ink-400">
                           {summaryOf(b)}
                         </span>
@@ -437,6 +523,33 @@ function BlockEditor({
   onClose: () => void;
 }) {
   const def = BLOCKS[block.type];
+
+  /**
+   * A block type this build does not know about.
+   *
+   * `parseBlocks` keeps such blocks rather than dropping them, so that opening and
+   * saving a page written by a newer build cannot delete the merchant's work. It
+   * has no fields to edit and the renderer skips it, so the honest thing is to say
+   * so and offer to remove it — not to crash, and not to pretend it is editable.
+   */
+  if (!def) {
+    return (
+      <div className="card p-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-display text-[15px] font-bold text-ink-900">Unknown block</h3>
+          <button type="button" onClick={onClose} className="grid h-6 w-6 place-items-center rounded text-ink-400 hover:text-ink-800">
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        <p className="mt-2 rounded-lg bg-amber-50 px-2.5 py-2 text-[13px] text-amber-900">
+          This block is <code className="font-mono">{block.type}</code>, which this version of the
+          builder does not recognise. It is kept as-is and skipped when the page renders, so nothing
+          is lost. If it came from a newer version, updating will make it editable again.
+        </p>
+      </div>
+    );
+  }
+
   const style = block.style || {};
 
   return (

@@ -6,7 +6,7 @@
 -- truncation makes it unparseable and the interface renders empty — the menu,
 -- the payment logos and the product images all failed this way.
 --
--- 81 columns in total.
+-- 99 columns in total.
 --
 -- HOW TO RUN
 --   hPanel -> Databases -> phpMyAdmin -> select your database -> SQL tab,
@@ -107,3 +107,21 @@ ALTER TABLE `PaymentMethod` MODIFY `instructions` TEXT NULL;
 ALTER TABLE `PaymentMethod` MODIFY `config` TEXT NULL;
 ALTER TABLE `PageView` MODIFY `path` TEXT NOT NULL;
 ALTER TABLE `PageView` MODIFY `referrer` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `title` TEXT NOT NULL;
+ALTER TABLE `LandingPage` MODIFY `blocks` LONGTEXT NOT NULL;
+ALTER TABLE `LandingPage` MODIFY `metaTitle` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `metaDesc` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `metaKeywords` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `ogImage` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `canonical` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `gaId` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `fbPixelId` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `customHead` LONGTEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `customBody` LONGTEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `bgColor` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `textColor` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `fontFamily` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `checkoutHeading` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `checkoutFields` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `checkoutButton` TEXT NULL;
+ALTER TABLE `LandingPage` MODIFY `thankYouNote` TEXT NULL;

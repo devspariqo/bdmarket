@@ -475,12 +475,23 @@ export function newBlock(type: BlockType): Block {
   };
 }
 
+/** Whether this build knows how to render the block type. */
+export function isKnownBlockType(type: string): type is BlockType {
+  return Object.prototype.hasOwnProperty.call(BLOCKS, type);
+}
+
 /**
- * Parse stored JSON into blocks, tolerating anything malformed.
+ * Parse stored JSON into blocks.
  *
- * A landing page that fails to parse must still render its other blocks rather
- * than 500 — the same reasoning as `parseJSON` elsewhere in the app, which exists
- * because a truncated value once took whole pages down.
+ * Tolerates anything malformed, and **preserves blocks whose type this build does
+ * not recognise**. That second part matters more than it looks: the old version
+ * filtered them out, so opening and saving a page written by a newer build — or
+ * one containing a type that was renamed — silently deleted those blocks from the
+ * database. Losing a merchant's work to a save they did not think twice about is
+ * far worse than rendering a block we cannot draw.
+ *
+ * The renderer skips unknown types and the builder shows them as "unknown", so an
+ * unrecognised block is inert but recoverable.
  */
 export function parseBlocks(raw: unknown): Block[] {
   let value: unknown = raw;
@@ -493,15 +504,24 @@ export function parseBlocks(raw: unknown): Block[] {
   }
   if (!Array.isArray(value)) return [];
 
+  const seen = new Set<string>();
+
   return value
-    .filter((b): b is Block => !!b && typeof b === 'object' && typeof (b as Block).type === 'string')
-    .filter((b) => b.type in BLOCKS)
-    .map((b, i) => ({
-      id: typeof b.id === 'string' && b.id ? b.id : `b${i}`,
-      type: b.type,
-      props: b.props && typeof b.props === 'object' ? b.props : BLOCKS[b.type].defaults(),
-      style: b.style && typeof b.style === 'object' ? b.style : {},
-    }));
+    .filter((b): b is any => !!b && typeof b === 'object' && typeof (b as any).type === 'string')
+    .map((b, i) => {
+      // Duplicate ids would collide as React keys and make an edit land on the
+      // wrong block, so a repeat gets a fresh one.
+      let id = typeof b.id === 'string' && b.id ? b.id : `b${i}`;
+      if (seen.has(id)) id = `${id}-${i}`;
+      seen.add(id);
+
+      return {
+        id,
+        type: b.type,
+        props: b.props && typeof b.props === 'object' ? b.props : {},
+        style: b.style && typeof b.style === 'object' ? b.style : {},
+      };
+    });
 }
 
 /** The checkout block on a page, if it has one. */

@@ -1,6 +1,6 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-17T03:44:43.069Z
+-- Generated 2026-09-17T05:07:47.632Z
 -- 22 tables populated with 662 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
@@ -575,30 +575,30 @@ CREATE TABLE `Newsletter` (
 DROP TABLE IF EXISTS `LandingPage`;
 CREATE TABLE `LandingPage` (
     `id` VARCHAR(191) NOT NULL,
-    `title` VARCHAR(191) NOT NULL,
+    `title` TEXT NOT NULL,
     `slug` VARCHAR(191) NOT NULL,
     `parentSlug` VARCHAR(191) NOT NULL DEFAULT 'collection',
     `status` VARCHAR(191) NOT NULL DEFAULT 'draft',
-    `blocks` VARCHAR(191) NOT NULL,
-    `metaTitle` VARCHAR(191) NULL,
-    `metaDesc` VARCHAR(191) NULL,
-    `metaKeywords` VARCHAR(191) NULL,
-    `ogImage` VARCHAR(191) NULL,
-    `canonical` VARCHAR(191) NULL,
+    `blocks` LONGTEXT NOT NULL,
+    `metaTitle` TEXT NULL,
+    `metaDesc` TEXT NULL,
+    `metaKeywords` TEXT NULL,
+    `ogImage` TEXT NULL,
+    `canonical` TEXT NULL,
     `noIndex` BOOLEAN NOT NULL DEFAULT false,
-    `gaId` VARCHAR(191) NULL,
-    `fbPixelId` VARCHAR(191) NULL,
-    `customHead` VARCHAR(191) NULL,
-    `customBody` VARCHAR(191) NULL,
-    `bgColor` VARCHAR(191) NULL,
-    `textColor` VARCHAR(191) NULL,
-    `fontFamily` VARCHAR(191) NULL,
+    `gaId` TEXT NULL,
+    `fbPixelId` TEXT NULL,
+    `customHead` LONGTEXT NULL,
+    `customBody` LONGTEXT NULL,
+    `bgColor` TEXT NULL,
+    `textColor` TEXT NULL,
+    `fontFamily` TEXT NULL,
     `maxWidth` INTEGER NOT NULL DEFAULT 1100,
     `checkoutEnabled` BOOLEAN NOT NULL DEFAULT true,
-    `checkoutHeading` VARCHAR(191) NULL,
-    `checkoutFields` VARCHAR(191) NULL,
-    `checkoutButton` VARCHAR(191) NULL,
-    `thankYouNote` VARCHAR(191) NULL,
+    `checkoutHeading` TEXT NULL,
+    `checkoutFields` TEXT NULL,
+    `checkoutButton` TEXT NULL,
+    `thankYouNote` TEXT NULL,
     `views` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -743,7 +743,7 @@ INSERT INTO `Customer` (`id`, `userId`, `email`, `name`, `phone`, `gender`, `bir
 
 -- LandingPage: 1 row
 INSERT INTO `LandingPage` (`id`, `title`, `slug`, `parentSlug`, `status`, `blocks`, `metaTitle`, `metaDesc`, `metaKeywords`, `ogImage`, `canonical`, `noIndex`, `gaId`, `fbPixelId`, `customHead`, `customBody`, `bgColor`, `textColor`, `fontFamily`, `maxWidth`, `checkoutEnabled`, `checkoutHeading`, `checkoutFields`, `checkoutButton`, `thankYouNote`, `views`, `createdAt`, `updatedAt`) VALUES
-('cmu4zivnw00043r3w7deueywb','Eid Panjabi Offer','eid-panjabi','collection','published','[{"id":"h1","type":"hero","props":{"image":"","heading":"Eid Panjabi Collection","subheading":"Limited stock","ctaLabel":"Order now","ctaHref":"#order","overlay":45,"height":420,"align":"center"},"style":{}},{"id":"p1","type":"products","props":{"productIds":["cmtzd3l6d001f670tp6nhorg9"],"layout":"single","showPrice":true,"showCompare":true,"showBuy":true,"buyLabel":"Order now"},"style":{}},{"id":"c1","type":"checkout","props":{"heading":"Order now","subheading":"Cash on delivery","buttonLabel":"Place order","successText":"Thank you!","fields":["customerName","phone","district","street"],"required":["customerName","phone","district","street"]},"style":{}}]','Eid Panjabi — 30% off','Limited Eid collection with cash on delivery.',NULL,NULL,NULL,0,'G-TEST12345',NULL,NULL,NULL,NULL,NULL,NULL,1100,1,NULL,NULL,NULL,NULL,0,'2026-09-17 03:43:32.300','2026-09-17 03:43:33.129');
+('cmu4zivnw00043r3w7deueywb','Eid Panjabi Offer','eid-panjabi','collection','published','[{"id":"h1","type":"hero","props":{"image":"","heading":"Eid Panjabi Collection","subheading":"Limited stock","ctaLabel":"Order now","ctaHref":"#order","overlay":45,"height":420,"align":"center"},"style":{}},{"id":"p1","type":"products","props":{"productIds":["cmtzd3l6d001f670tp6nhorg9"],"layout":"single","showPrice":true,"showCompare":true,"showBuy":true,"buyLabel":"Order now"},"style":{}},{"id":"c1","type":"checkout","props":{"heading":"Order now","subheading":"Cash on delivery","buttonLabel":"Place order","successText":"Thank you!","fields":["customerName","phone","district","street"],"required":["customerName","phone","district","street"]},"style":{}},{"id":"bmu51f7m8916va","type":"text","props":{"text":"Describe the product, the offer, or why it is worth buying.","align":"left","size":"base"},"style":{}}]','Eid Panjabi — 30% off','Limited Eid collection with cash on delivery.',NULL,NULL,NULL,0,'G-TEST12345',NULL,NULL,NULL,NULL,NULL,NULL,1100,1,NULL,NULL,NULL,NULL,0,'2026-09-17 03:43:32.300','2026-09-17 05:05:03.569');
 
 -- Media: 48 rows
 INSERT INTO `Media` (`id`, `filename`, `url`, `mimeType`, `size`, `width`, `height`, `alt`, `folder`, `createdAt`) VALUES
@@ -1412,7 +1412,7 @@ INSERT INTO `TaxRate` (`id`, `name`, `country`, `rate`, `inclusive`, `status`) V
 
 -- User: 11 rows
 INSERT INTO `User` (`id`, `email`, `passwordHash`, `name`, `phone`, `role`, `avatar`, `status`, `lastLoginAt`, `createdAt`, `updatedAt`) VALUES
-('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-17 03:43:32.031','2026-09-13 05:16:53.199','2026-09-17 03:43:32.033'),
+('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-17 05:03:15.750','2026-09-13 05:16:53.199','2026-09-17 05:03:15.752'),
 ('cmtzd3itz0001670t7aq4m1y7','manager@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Store Manager','+8801700000002','MANAGER',NULL,'active',NULL,'2026-09-13 05:16:53.400','2026-09-13 05:16:53.400'),
 ('cmtzd3iwt0002670tzcju4d4d','editor@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Content Editor',NULL,'EDITOR',NULL,'active',NULL,'2026-09-13 05:16:53.501','2026-09-13 05:16:53.501'),
 ('cmtzd3nnk003e670t3jmaj1w1','rahim@example.com','$2a$10$aH29OSWJSP7lXgRL4Q7EOelB4FHg43g1gk4mAcJEqfZAy2TeQSrUu','Rahim Ahmed','+8801711000001','CUSTOMER',NULL,'active','2026-09-13 08:19:17.280','2026-09-13 05:16:59.649','2026-09-13 08:19:17.281'),
