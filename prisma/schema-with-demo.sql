@@ -1,6 +1,6 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-17T12:03:42.503Z
+-- Generated 2026-09-17T12:04:31.777Z
 -- 22 tables populated with 664 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
