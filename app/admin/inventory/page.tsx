@@ -4,6 +4,7 @@ import { AlertTriangle, Boxes, PackageX, Wallet } from 'lucide-react';
 import prisma from '@/lib/db';
 import { formatNumber, formatPrice, parseJSON } from '@/lib/utils';
 import InventoryTable from '@/components/admin/InventoryTable';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Inventory' };
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,7 @@ export default async function AdminInventoryPage({
 }: {
   searchParams: { filter?: string; q?: string };
 }) {
+  const base = await getAdminBase();
   const filter = searchParams.filter || 'all';
   const q = searchParams.q?.trim() || '';
 
@@ -68,7 +70,7 @@ export default async function AdminInventoryPage({
           {tabs.map((t) => (
             <Link
               key={t.key}
-              href={`/admin/inventory?filter=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
+              href={`${base}/inventory?filter=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
               className={`chip whitespace-nowrap ${filter === t.key ? 'chip-active' : ''}`}
             >
               {t.label}
@@ -79,6 +81,7 @@ export default async function AdminInventoryPage({
       </div>
 
       <InventoryTable
+        base={base}
         products={products.map((p) => ({
           id: p.id,
           name: p.name,

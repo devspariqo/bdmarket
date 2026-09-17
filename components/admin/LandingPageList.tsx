@@ -28,7 +28,7 @@ export type LandingRow = {
  * traffic and no orders is a page problem, and one that gets neither is a
  * traffic problem, and the merchant cannot tell which without both numbers.
  */
-export default function LandingPageList({ initial }: { initial: LandingRow[] }) {
+export default function LandingPageList({ initial, base }: { initial: LandingRow[]; base: string }) {
   const router = useRouter();
   const [rows, setRows] = useState(initial);
   const [q, setQ] = useState('');
@@ -85,7 +85,7 @@ export default function LandingPageList({ initial }: { initial: LandingRow[] }) 
       });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error(data?.error || 'Could not create the page');
-      router.push(`/admin/landing-pages/${data.page.id}`);
+      router.push(`${base}/landing-pages/${data.page.id}`);
     } catch (e: any) {
       setErr(e?.message || 'Could not create the page');
       setCreating(false);
@@ -198,7 +198,7 @@ export default function LandingPageList({ initial }: { initial: LandingRow[] }) 
                 {filtered.map((row) => (
                   <tr key={row.id} className="hover:bg-ink-50/60">
                     <td className="px-3 py-2.5">
-                      <Link href={`/admin/landing-pages/${row.id}`} className="font-semibold text-ink-900 hover:text-brand-700">
+                      <Link href={`${base}/landing-pages/${row.id}`} className="font-semibold text-ink-900 hover:text-brand-700">
                         {row.title}
                       </Link>
                       <span className="mt-0.5 block truncate font-mono text-[12px] text-ink-400">{row.path}</span>
@@ -227,7 +227,7 @@ export default function LandingPageList({ initial }: { initial: LandingRow[] }) 
                         <button type="button" onClick={() => duplicate(row)} disabled={busy === row.id} title="Duplicate" className="grid h-7 w-7 place-items-center rounded text-ink-400 hover:text-ink-800">
                           <Copy className="h-3.5 w-3.5" />
                         </button>
-                        <Link href={`/admin/landing-pages/${row.id}`} title="Edit" className="grid h-7 w-7 place-items-center rounded text-ink-400 hover:text-ink-800">
+                        <Link href={`${base}/landing-pages/${row.id}`} title="Edit" className="grid h-7 w-7 place-items-center rounded text-ink-400 hover:text-ink-800">
                           <Pencil className="h-3.5 w-3.5" />
                         </Link>
                         <button type="button" onClick={() => remove(row)} disabled={busy === row.id} title="Delete" className="grid h-7 w-7 place-items-center rounded text-ink-400 hover:text-rose-600">

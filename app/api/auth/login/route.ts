@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { verifyPassword, createSession } from '@/lib/auth';
+import { getAdminBase } from '@/lib/admin-path';
 
 export async function POST(req: Request) {
   try {
@@ -27,7 +28,15 @@ export async function POST(req: Request) {
       data: { userId: user.id, action: 'LOGIN', entity: 'auth', ip: req.headers.get('x-forwarded-for') || 'local' },
     });
 
-    return NextResponse.json({ ok: true, redirect: '/admin', role: user.role });
+    /**
+     * The redirect target is the configured panel path, not `/admin`.
+     *
+     * The form currently navigates from the `base` prop it was given, so this
+     * value is not what moves the browser — but returning a hardcoded `/admin`
+     * means any future caller that trusts it sends the merchant to a 404 the
+     * moment they have moved the panel.
+     */
+    return NextResponse.json({ ok: true, redirect: await getAdminBase(), role: user.role });
   } catch (e) {
     console.error('admin login', e);
     return NextResponse.json({ error: 'Login failed. Please try again.' }, { status: 500 });

@@ -4,6 +4,7 @@ import { CheckCircle2, MessageSquare, ShieldAlert, Star, ThumbsUp } from 'lucide
 import prisma from '@/lib/db';
 import { formatNumber, timeAgo } from '@/lib/utils';
 import ReviewModeration from '@/components/admin/ReviewModeration';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Reviews' };
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export default async function AdminReviewsPage({
 }: {
   searchParams: { status?: string; q?: string; page?: string };
 }) {
+  const base = await getAdminBase();
   const status = searchParams.status || 'pending';
   const q = searchParams.q?.trim() || '';
   const page = Math.max(1, Number(searchParams.page || 1));
@@ -79,7 +81,7 @@ export default async function AdminReviewsPage({
           {tabs.map((t) => (
             <Link
               key={t.key}
-              href={`/admin/reviews?status=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
+              href={`${base}/reviews?status=${t.key}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
               className={`chip whitespace-nowrap ${status === t.key ? 'chip-active' : ''}`}
             >
               {t.label}
@@ -88,7 +90,7 @@ export default async function AdminReviewsPage({
           ))}
         </div>
 
-        <form action="/admin/reviews" className="flex w-full gap-2 sm:w-auto">
+        <form action={`${base}/reviews`} className="flex w-full gap-2 sm:w-auto">
           <input type="hidden" name="status" value={status} />
           <input
             name="q"
@@ -122,7 +124,7 @@ export default async function AdminReviewsPage({
         <nav className="flex items-center justify-center gap-1.5">
           {page > 1 && (
             <Link
-              href={`/admin/reviews?status=${status}&q=${encodeURIComponent(q)}&page=${page - 1}`}
+              href={`${base}/reviews?status=${status}&q=${encodeURIComponent(q)}&page=${page - 1}`}
               className="btn-outline btn-sm"
             >
               Previous
@@ -133,7 +135,7 @@ export default async function AdminReviewsPage({
           </span>
           {page < totalPages && (
             <Link
-              href={`/admin/reviews?status=${status}&q=${encodeURIComponent(q)}&page=${page + 1}`}
+              href={`${base}/reviews?status=${status}&q=${encodeURIComponent(q)}&page=${page + 1}`}
               className="btn-outline btn-sm"
             >
               Next

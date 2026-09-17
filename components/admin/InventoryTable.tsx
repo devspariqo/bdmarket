@@ -23,7 +23,7 @@ type Row = {
 
 type Edit = { stock?: number; lowStockAlert?: number; price?: number; costPrice?: number };
 
-export default function InventoryTable({ products }: { products: Row[] }) {
+export default function InventoryTable({ products, base }: { products: Row[]; base: string }) {
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [edits, setEdits] = useState<Record<string, Edit>>({});
@@ -153,7 +153,7 @@ export default function InventoryTable({ products }: { products: Row[] }) {
                         </div>
                         <div className="min-w-0 max-w-[220px]">
                           <Link
-                            href={`/admin/products/${p.id}`}
+                            href={`${base}/products/${p.id}`}
                             className="block truncate font-medium text-ink-900 hover:text-brand-700"
                           >
                             {p.name}
@@ -214,7 +214,7 @@ export default function InventoryTable({ products }: { products: Row[] }) {
                     </td>
                     <td className="td">
                       <Link
-                        href={`/admin/products/${p.id}`}
+                        href={`${base}/products/${p.id}`}
                         className="grid h-8 w-8 place-items-center rounded-lg text-ink-400 transition hover:bg-ink-100 hover:text-ink-700"
                         title="Open product"
                       >

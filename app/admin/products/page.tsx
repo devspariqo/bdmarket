@@ -148,7 +148,7 @@ export default async function AdminProductsPage({
                         )}
                       </div>
                       <div className="min-w-0">
-                        <Link href={`/admin/products/${p.id}`} className="line-clamp-1 text-[13px] font-semibold text-ink-900 hover:text-brand-700">
+                        <Link href={`${base}/products/${p.id}`} className="line-clamp-1 text-[13px] font-semibold text-ink-900 hover:text-brand-700">
                           {p.name}
                         </Link>
                         {p.brand && <p className="mt-0.5 text-[12px] text-ink-400">{p.brand.name}</p>}
@@ -188,7 +188,7 @@ export default async function AdminProductsPage({
                     <p className="text-[12px] text-ink-400">{p.rating.toFixed(1)}★</p>
                   </td>
                   <td className="td">
-                    <ProductRowActions id={p.id} slug={p.slug} name={p.name} status={p.status} />
+                    <ProductRowActions id={p.id} slug={p.slug} name={p.name} status={p.status} base={base} />
                   </td>
                 </tr>
               );

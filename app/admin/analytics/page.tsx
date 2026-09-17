@@ -13,6 +13,7 @@ import { formatCompact, formatNumber, formatPrice, timeAgo } from '@/lib/utils';
 import RevenueChart from '@/components/admin/charts/RevenueChart';
 import StatusDonut from '@/components/admin/charts/StatusDonut';
 import CategoryBar from '@/components/admin/charts/CategoryBar';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Analytics' };
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,7 @@ export default async function AdminAnalyticsPage({
 }: {
   searchParams: { days?: string };
 }) {
+  const base = await getAdminBase();
   const days = Math.min(365, Math.max(7, Number(searchParams.days || 30)));
 
   const [stats, series, products, cats, districts, statuses, payments] = await Promise.all([
@@ -74,7 +76,7 @@ export default async function AdminAnalyticsPage({
         </div>
         <div className="flex gap-1.5">
           {ranges.map((r) => (
-            <Link key={r} href={`/admin/analytics?days=${r}`} className={`chip ${days === r ? 'chip-active' : ''}`}>
+            <Link key={r} href={`${base}/analytics?days=${r}`} className={`chip ${days === r ? 'chip-active' : ''}`}>
               {r === 365 ? '1y' : `${r}d`}
             </Link>
           ))}
@@ -206,7 +208,7 @@ export default async function AdminAnalyticsPage({
                     <tr key={p.id} className="border-b border-ink-100 last:border-0">
                       <td className="td text-ink-400">{i + 1}</td>
                       <td className="td">
-                        <Link href={`/admin/products/${p.id}`} className="font-medium text-ink-900 hover:text-brand-700">
+                        <Link href={`${base}/products/${p.id}`} className="font-medium text-ink-900 hover:text-brand-700">
                           {p.name}
                         </Link>
                       </td>
@@ -279,7 +281,7 @@ export default async function AdminAnalyticsPage({
                 searchTerms.map((s, i) => (
                   <Link
                     key={s.query}
-                    href={`/admin/products?q=${encodeURIComponent(s.query)}`}
+                    href={`${base}/products?q=${encodeURIComponent(s.query)}`}
                     className="flex items-center justify-between rounded-lg px-2 py-1.5 text-[15px] transition hover:bg-ink-50"
                   >
                     <span className="flex items-center gap-2 truncate">

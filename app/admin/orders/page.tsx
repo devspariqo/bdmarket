@@ -169,7 +169,7 @@ export default async function AdminOrdersPage({
                     <input type="checkbox" className="h-4 w-4 rounded border-ink-300 text-brand-600" aria-label={`Select ${o.orderNumber}`} />
                   </td>
                   <td className="td">
-                    <Link href={`/admin/orders/${o.id}`} className="font-mono text-[13px] font-bold text-brand-700 hover:underline">
+                    <Link href={`${base}/orders/${o.id}`} className="font-mono text-[13px] font-bold text-brand-700 hover:underline">
                       {o.orderNumber}
                     </Link>
                     {o.trackingNumber && (
@@ -218,7 +218,7 @@ export default async function AdminOrdersPage({
                   </td>
                   <td className="td text-right">
                     <Link
-                      href={`/admin/orders/${o.id}`}
+                      href={`${base}/orders/${o.id}`}
                       className="inline-flex items-center gap-1.5 rounded-lg bg-ink-900 px-2.5 py-1.5 text-[12px] font-bold text-white transition hover:bg-brand-700"
                     >
                       <Eye className="h-3 w-3" /> View

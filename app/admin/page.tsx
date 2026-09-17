@@ -174,7 +174,7 @@ export default async function AdminDashboard() {
                 {orders.map((o) => (
                   <tr key={o.id} className="transition hover:bg-ink-50/50">
                     <td className="td">
-                      <Link href={`/admin/orders/${o.id}`} className="font-mono text-[13px] font-bold text-brand-700 hover:underline">
+                      <Link href={`${base}/orders/${o.id}`} className="font-mono text-[13px] font-bold text-brand-700 hover:underline">
                         {o.orderNumber}
                       </Link>
                       <p className="mt-0.5 text-[12px] text-ink-400">{timeAgo(o.createdAt)}</p>
@@ -255,7 +255,7 @@ export default async function AdminDashboard() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <Link href={`/admin/products/${p.id}`} className="line-clamp-1 text-[13px] font-semibold text-ink-800 hover:text-brand-700">
+                  <Link href={`${base}/products/${p.id}`} className="line-clamp-1 text-[13px] font-semibold text-ink-800 hover:text-brand-700">
                     {p.name}
                   </Link>
                   <p className="mt-0.5 font-mono text-[12px] text-ink-400">{p.sku}</p>

@@ -4,6 +4,7 @@ import { Mail, MapPin, TrendingUp, UserCheck, Users } from 'lucide-react';
 import prisma from '@/lib/db';
 import { formatNumber, formatPrice, formatDate } from '@/lib/utils';
 import CustomerTable from '@/components/admin/CustomerTable';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Customers' };
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export default async function AdminCustomersPage({
 }: {
   searchParams: { q?: string; sort?: string; page?: string };
 }) {
+  const base = await getAdminBase();
   const q = searchParams.q?.trim() || '';
   const sort = searchParams.sort || 'recent';
   const page = Math.max(1, Number(searchParams.page || 1));
@@ -99,7 +101,7 @@ export default async function AdminCustomersPage({
           {sorts.map((s) => (
             <Link
               key={s.key}
-              href={`/admin/customers?sort=${s.key}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
+              href={`${base}/customers?sort=${s.key}${q ? `&q=${encodeURIComponent(q)}` : ''}`}
               className={`chip whitespace-nowrap ${sort === s.key ? 'chip-active' : ''}`}
             >
               {s.label}
@@ -107,7 +109,7 @@ export default async function AdminCustomersPage({
           ))}
         </div>
 
-        <form action="/admin/customers" className="flex w-full gap-2 sm:w-auto">
+        <form action={`${base}/customers`} className="flex w-full gap-2 sm:w-auto">
           <input type="hidden" name="sort" value={sort} />
           <input name="q" defaultValue={q} placeholder="Name, email, phone…" className="input sm:w-64" />
           <button className="btn-dark btn-sm whitespace-nowrap">Search</button>
@@ -115,6 +117,7 @@ export default async function AdminCustomersPage({
       </div>
 
       <CustomerTable
+        base={base}
         customers={customers.map((c) => ({
           id: c.id,
           name: c.name,
@@ -133,7 +136,7 @@ export default async function AdminCustomersPage({
       {totalPages > 1 && (
         <nav className="flex items-center justify-center gap-1.5">
           {page > 1 && (
-            <Link href={`/admin/customers?sort=${sort}&q=${encodeURIComponent(q)}&page=${page - 1}`} className="btn-outline btn-sm">
+            <Link href={`${base}/customers?sort=${sort}&q=${encodeURIComponent(q)}&page=${page - 1}`} className="btn-outline btn-sm">
               Previous
             </Link>
           )}
@@ -141,7 +144,7 @@ export default async function AdminCustomersPage({
             Page {page} of {totalPages}
           </span>
           {page < totalPages && (
-            <Link href={`/admin/customers?sort=${sort}&q=${encodeURIComponent(q)}&page=${page + 1}`} className="btn-outline btn-sm">
+            <Link href={`${base}/customers?sort=${sort}&q=${encodeURIComponent(q)}&page=${page + 1}`} className="btn-outline btn-sm">
               Next
             </Link>
           )}

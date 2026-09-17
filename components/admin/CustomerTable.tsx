@@ -24,7 +24,7 @@ type C = {
 
 const SUGGESTED = ['vip', 'wholesale', 'reseller', 'frequent', 'inactive', 'newsletter', 'chronic-cod-canceller'];
 
-export default function CustomerTable({ customers }: { customers: C[] }) {
+export default function CustomerTable({ customers, base }: { customers: C[]; base: string }) {
   const router = useRouter();
   const [panel, setPanel] = useState<C | null>(null);
   const [tags, setTags] = useState('');
@@ -135,7 +135,7 @@ export default function CustomerTable({ customers }: { customers: C[] }) {
                     </div>
                   </td>
                   <td className="td">
-                    <Link href={`/admin/orders?q=${encodeURIComponent(c.email)}`} className="font-semibold text-brand-700 hover:underline">
+                    <Link href={`${base}/orders?q=${encodeURIComponent(c.email)}`} className="font-semibold text-brand-700 hover:underline">
                       {formatNumber(c.orderCount)}
                     </Link>
                   </td>

@@ -74,7 +74,7 @@ export default async function AdminLandingPagesPage() {
         </p>
       </header>
 
-      <LandingPageList initial={rows} />
+      <LandingPageList initial={rows} base={base} />
 
       <p className="text-[13px] text-ink-500">
         Need the order emails and SMS to work? Set them up under{' '}

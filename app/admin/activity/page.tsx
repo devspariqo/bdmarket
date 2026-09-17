@@ -109,7 +109,7 @@ export default async function AdminActivityPage({
           {entityCounts.map((e) => (
             <Link
               key={e.entity}
-              href={`/admin/activity?entity=${e.entity}`}
+              href={`${base}/activity?entity=${e.entity}`}
               className={`chip whitespace-nowrap ${entity === e.entity ? 'chip-active' : ''}`}
             >
               {e.entity}
@@ -118,7 +118,7 @@ export default async function AdminActivityPage({
           ))}
         </div>
 
-        <form action="/admin/activity" className="flex w-full gap-2 sm:w-auto">
+        <form action={`${base}/activity`} className="flex w-full gap-2 sm:w-auto">
           <input type="hidden" name="entity" value={entity} />
           <input name="q" defaultValue={q} placeholder="Search actions…" className="input sm:w-60" />
           <button className="btn-dark btn-sm whitespace-nowrap">Search</button>
@@ -194,7 +194,7 @@ export default async function AdminActivityPage({
         <nav className="flex items-center justify-center gap-1.5">
           {page > 1 && (
             <Link
-              href={`/admin/activity?entity=${entity}&q=${encodeURIComponent(q)}&page=${page - 1}`}
+              href={`${base}/activity?entity=${entity}&q=${encodeURIComponent(q)}&page=${page - 1}`}
               className="btn-outline btn-sm"
             >
               Previous
@@ -205,7 +205,7 @@ export default async function AdminActivityPage({
           </span>
           {page < totalPages && (
             <Link
-              href={`/admin/activity?entity=${entity}&q=${encodeURIComponent(q)}&page=${page + 1}`}
+              href={`${base}/activity?entity=${entity}&q=${encodeURIComponent(q)}&page=${page + 1}`}
               className="btn-outline btn-sm"
             >
               Next

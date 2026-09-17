@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Edit, Trash2, Eye, MoreVertical, Copy, Loader2, Archive } from 'lucide-react';
 
 export default function ProductRowActions({
-  id, slug, name, status,
-}: { id: string; slug: string; name: string; status: string }) {
+  id, slug, name, status, base,
+}: { id: string; slug: string; name: string; status: string; base: string }) {
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function ProductRowActions({
   return (
     <div className="relative flex items-center justify-end gap-1">
       <Link
-        href={`/admin/products/${id}`}
+        href={`${base}/products/${id}`}
         className="rounded-lg p-2 text-ink-500 transition hover:bg-blue-50 hover:text-blue-600"
         title="Edit"
       >

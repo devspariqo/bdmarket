@@ -22,26 +22,52 @@ import { NextResponse, type NextRequest } from 'next/server';
 const CACHE_MS = 30_000;
 let cachedPath = 'admin';
 let cachedAt = 0;
+/** The resolution in flight, so concurrent requests share it. */
+let resolving: Promise<string> | null = null;
 
 async function panelPath(origin: string): Promise<string> {
   if (Date.now() - cachedAt < CACHE_MS) return cachedPath;
-  try {
-    const res = await fetch(`${origin}/api/panel-path`, {
-      cache: 'no-store',
-      headers: { 'x-panel-token': process.env.AUTH_SECRET || '' },
-    });
-    const data = await res.json();
-    if (typeof data?.path === 'string' && data.path) cachedPath = data.path;
-  } catch {
-    // Keep the last known value. A blip must not snap the panel back to /admin
-    // and expose it, nor 404 the path the merchant is actually using.
-  }
-  cachedAt = Date.now();
-  return cachedPath;
+  if (resolving) return resolving;
+
+  resolving = (async () => {
+    try {
+      const res = await fetch(`${origin}/api/panel-path`, {
+        cache: 'no-store',
+        headers: { 'x-panel-token': process.env.AUTH_SECRET || '' },
+      });
+      const data = await res.json();
+      if (typeof data?.path === 'string' && data.path) cachedPath = data.path;
+    } catch {
+      // Keep the last known value. A blip must not snap the panel back to /admin
+      // and expose it, nor 404 the path the merchant is actually using.
+    } finally {
+      // Set the timestamp only once the value is settled, so a failed lookup is
+      // retried rather than cached for the full window.
+      cachedAt = Date.now();
+      resolving = null;
+    }
+    return cachedPath;
+  })();
+
+  return resolving;
 }
 
 export async function middleware(req: NextRequest) {
   const { pathname, origin } = req.nextUrl;
+
+  /**
+   * The resolver must not resolve itself.
+   *
+   * `panelPath` calls this app over HTTP, and that request runs middleware too —
+   * so without this the middleware asked itself for the path, which asked itself
+   * again, and so on. The recursion eventually gave up and left the cached value
+   * at the default, which meant a custom path 404'd and the login page could not
+   * be reached at all: exactly the symptom this fixes.
+   */
+  if (pathname === '/api/panel-path') {
+    return NextResponse.next();
+  }
+
   const custom = await panelPath(origin);
 
   if (custom !== 'admin') {

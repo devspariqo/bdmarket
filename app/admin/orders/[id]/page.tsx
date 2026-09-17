@@ -190,7 +190,7 @@ export default async function AdminOrderDetail({ params }: { params: { id: strin
               )}
             </div>
             {order.customerId && (
-              <Link href={`/admin/customers/${order.customerId}`} className="btn-outline btn-sm mt-3 w-full">
+              <Link href={`${base}/customers/${order.customerId}`} className="btn-outline btn-sm mt-3 w-full">
                 View Customer Profile
               </Link>
             )}
