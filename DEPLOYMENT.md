@@ -271,6 +271,26 @@ rejects outright. `npm run db:use sqlite` strips them and `npm run db:use mysql`
 switching provider stays a one-liner. If you add another long column, annotate it, then run
 `npm run db:column-types` to refresh the list the switcher uses.
 
+### If you are adding landing pages to a live store
+
+Admin → Growth → Landing Pages needs a table that a database created before this feature does not
+have. Without it that screen fails with `The table 'main.LandingPage' does not exist`.
+
+In hPanel → **Databases → phpMyAdmin**, select your database, open the **SQL** tab, paste the whole of
+**`prisma/add-landing-pages.sql`** and run it. It creates the table and adds one nullable column to
+`Order`. Nothing existing is touched, and re-running it only reports that the table already exists.
+
+```bash
+# regenerate it after any schema change, then commit the result
+npm run db:landing-migration
+```
+
+A fresh install needs none of this — `schema.sql` and `schema-with-demo.sql` already include the
+table, and the demo data ships with one worked example at `/collection/eid-panjabi`.
+
+Landing-page orders use the same email and SMS path as the cart checkout, so configure
+**Settings → Email** and **Settings → SMS** before pointing paid traffic at a page.
+
 ### Creating the tables
 
 Once `DATABASE_URL` is set and `/api/health` reports `schema-not-pushed`, the connection is working

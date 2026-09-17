@@ -24,7 +24,8 @@
     "cache:clear": "node scripts/clear-cache.js",
     "dev:clean": "node scripts/clear-cache.js && next dev -p 3000",
     "db:column-migration": "node scripts/gen-column-migration.js",
-    "db:column-types": "node scripts/gen-column-types.js"
+    "db:column-types": "node scripts/gen-column-types.js",
+    "db:landing-migration": "node scripts/gen-landing-migration.js"
   },
   "engines": {
     "node": ">=18.17.0"

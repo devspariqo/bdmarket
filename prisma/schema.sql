@@ -212,6 +212,7 @@ CREATE TABLE `Order` (
     `id` VARCHAR(191) NOT NULL,
     `orderNumber` VARCHAR(191) NOT NULL,
     `customerId` VARCHAR(191) NULL,
+    `landingPageId` VARCHAR(191) NULL,
     `email` VARCHAR(191) NOT NULL,
     `phone` VARCHAR(191) NOT NULL,
     `customerName` VARCHAR(191) NOT NULL,
@@ -249,6 +250,7 @@ CREATE TABLE `Order` (
     INDEX `Order_orderNumber_idx`(`orderNumber`),
     INDEX `Order_status_idx`(`status`),
     INDEX `Order_createdAt_idx`(`createdAt`),
+    INDEX `Order_landingPageId_idx`(`landingPageId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -522,6 +524,43 @@ CREATE TABLE `Newsletter` (
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
+-- CreateTable
+CREATE TABLE `LandingPage` (
+    `id` VARCHAR(191) NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
+    `parentSlug` VARCHAR(191) NOT NULL DEFAULT 'collection',
+    `status` VARCHAR(191) NOT NULL DEFAULT 'draft',
+    `blocks` VARCHAR(191) NOT NULL,
+    `metaTitle` VARCHAR(191) NULL,
+    `metaDesc` VARCHAR(191) NULL,
+    `metaKeywords` VARCHAR(191) NULL,
+    `ogImage` VARCHAR(191) NULL,
+    `canonical` VARCHAR(191) NULL,
+    `noIndex` BOOLEAN NOT NULL DEFAULT false,
+    `gaId` VARCHAR(191) NULL,
+    `fbPixelId` VARCHAR(191) NULL,
+    `customHead` VARCHAR(191) NULL,
+    `customBody` VARCHAR(191) NULL,
+    `bgColor` VARCHAR(191) NULL,
+    `textColor` VARCHAR(191) NULL,
+    `fontFamily` VARCHAR(191) NULL,
+    `maxWidth` INTEGER NOT NULL DEFAULT 1100,
+    `checkoutEnabled` BOOLEAN NOT NULL DEFAULT true,
+    `checkoutHeading` VARCHAR(191) NULL,
+    `checkoutFields` VARCHAR(191) NULL,
+    `checkoutButton` VARCHAR(191) NULL,
+    `thankYouNote` VARCHAR(191) NULL,
+    `views` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `LandingPage_slug_key`(`slug`),
+    INDEX `LandingPage_status_idx`(`status`),
+    INDEX `LandingPage_parentSlug_slug_idx`(`parentSlug`, `slug`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
 -- AddForeignKey
 ALTER TABLE `AuditLog` ADD CONSTRAINT `AuditLog_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -554,6 +593,9 @@ ALTER TABLE `Wishlist` ADD CONSTRAINT `Wishlist_productId_fkey` FOREIGN KEY (`pr
 
 -- AddForeignKey
 ALTER TABLE `Order` ADD CONSTRAINT `Order_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `Customer`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Order` ADD CONSTRAINT `Order_landingPageId_fkey` FOREIGN KEY (`landingPageId`) REFERENCES `LandingPage`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `OrderItem` ADD CONSTRAINT `OrderItem_orderId_fkey` FOREIGN KEY (`orderId`) REFERENCES `Order`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
