@@ -103,7 +103,20 @@ const globalForPrisma = globalThis as unknown as { prisma?: ReturnType<typeof cr
  */
 function createClient() {
   const base = new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+    /**
+     * Set `PRISMA_LOG_QUERIES=1` to log every statement.
+     *
+     * Off by default because it is verbose, but invaluable for two things: seeing
+     * whether a page is querying more than you think (a duplicated lookup in a
+     * server component is invisible otherwise — Next only dedupes `fetch`, not
+     * Prisma), and spotting an N+1 on a listing page.
+     */
+    log:
+      process.env.PRISMA_LOG_QUERIES === '1'
+        ? ['query', 'error', 'warn']
+        : process.env.NODE_ENV === 'development'
+        ? ['error', 'warn']
+        : ['error'],
   });
 
   return base.$extends({

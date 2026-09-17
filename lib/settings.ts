@@ -8,6 +8,18 @@ let cacheTime = 0;
 const TTL = 5000;
 
 /**
+ * The query currently in flight, if any.
+ *
+ * Without this, concurrent callers all miss the cache — none of them has
+ * populated it yet — and each runs its own `SELECT * FROM Setting`. A single
+ * product page render calls `getSiteConfig()`, `getPaymentLogos()` and several
+ * `getSetting()` in parallel, which measured **ten identical queries per page
+ * load**. Sharing the promise collapses that to one, and the result still lands
+ * in `cache` for the rest of the TTL.
+ */
+let inflight: Promise<Record<string, string>> | null = null;
+
+/**
  * Read every setting as a flat key/value map.
  *
  * Deliberately fails soft. This is called from `RootLayout`, so it runs for
@@ -26,18 +38,28 @@ const TTL = 5000;
  */
 export async function getAllSettings(force = false): Promise<Record<string, string>> {
   if (!force && cache && Date.now() - cacheTime < TTL) return Object.fromEntries(cache);
-  try {
-    const rows = await prisma.setting.findMany();
-    cache = new Map(rows.map((r) => [r.key, r.value]));
-    cacheTime = Date.now();
-    return Object.fromEntries(cache);
-  } catch (err) {
-    console.warn(
-      '[settings] database unavailable, falling back to defaults:',
-      err instanceof Error ? err.message : err
-    );
-    return {};
-  }
+  // A forced refresh must not join an in-flight request that may predate the
+  // change being forced for.
+  if (!force && inflight) return inflight;
+
+  inflight = (async () => {
+    try {
+      const rows = await prisma.setting.findMany();
+      cache = new Map(rows.map((r) => [r.key, r.value]));
+      cacheTime = Date.now();
+      return Object.fromEntries(cache);
+    } catch (err) {
+      console.warn(
+        '[settings] database unavailable, falling back to defaults:',
+        err instanceof Error ? err.message : err
+      );
+      return {};
+    } finally {
+      inflight = null;
+    }
+  })();
+
+  return inflight;
 }
 
 export async function getSetting(key: string, fallback = ''): Promise<string> {

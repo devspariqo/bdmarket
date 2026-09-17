@@ -1,8 +1,21 @@
 import Link from 'next/link';
 import { Star, ShoppingBag, Heart, Eye } from 'lucide-react';
 import { formatPrice, discountPercent } from '@/lib/utils';
+import { CARD_WIDTHS, imageAt, srcSetFor } from '@/lib/images';
 import AddToCartButton from './AddToCartButton';
 
+/**
+ * A product image, sized by the image host.
+ *
+ * The `sizes` attribute was already here but did nothing without a `srcSet` — a
+ * browser has nothing to choose from, so it fetched the original at full size for
+ * a ~250px card. That is the single largest avoidable cost on every listing page,
+ * and there are dozens of these per page.
+ *
+ * `srcSetFor` returns undefined for hosts that cannot resize (a merchant's own
+ * uploads, which are already downscaled before upload), and the plain `src` is
+ * used unchanged in that case.
+ */
 export function ProductImage({
   src, alt, className = '', sizes = '(max-width: 768px) 50vw, 25vw', priority = false,
 }: { src: string; alt: string; className?: string; sizes?: string; priority?: boolean }) {
@@ -15,7 +28,17 @@ export function ProductImage({
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt={alt} loading={priority ? 'eager' : 'lazy'} className={className} sizes={sizes} />
+    <img
+      src={imageAt(src, 480)}
+      srcSet={srcSetFor(src, CARD_WIDTHS)}
+      sizes={sizes}
+      alt={alt}
+      // The first row of cards can be in view on load; everything below is not.
+      loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'auto'}
+      decoding="async"
+      className={className}
+    />
   );
 }
 

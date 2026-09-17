@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { cache } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Truck, ShieldCheck, RotateCcw, Minus, Check, Package } from 'lucide-react';
@@ -40,11 +41,38 @@ import { PaymentLogoImage } from '@/components/PaymentLogoImage';
  */
 export const dynamic = 'force-dynamic';
 
+/**
+ * One product lookup per request, shared by `generateMetadata` and the page.
+ *
+ * These were two separate `findUnique` calls with overlapping includes, and Next
+ * only deduplicates `fetch` — a Prisma call runs again every time. So every
+ * product page view hit the database twice for the same row, on the page that
+ * carries the most traffic in the store.
+ *
+ * `cache()` memoises for the lifetime of one render pass, which is exactly the
+ * scope wanted: the two callers share a result, and nothing is reused between
+ * requests, so a price edited in the admin still shows immediately.
+ *
+ * The includes are the superset of what either caller needs, so the single query
+ * serves both.
+ */
+const getProduct = cache(async (slug: string) =>
+  prisma.product.findUnique({
+    where: { slug },
+    include: {
+      category: { include: { parent: true } },
+      brand: true,
+      reviews: {
+        where: { status: 'approved' },
+        orderBy: { createdAt: 'desc' },
+        take: 8,
+      },
+    },
+  })
+);
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const p = await prisma.product.findUnique({
-    where: { slug: params.slug },
-    include: { category: true, brand: true },
-  });
+  const p = await getProduct(params.slug);
   if (!p) return { title: 'Product Not Found' };
 
   const config = await getSiteConfig();
@@ -89,18 +117,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
   // dropped rather than leaving an empty cell. Nine fills the 3-column grid.
   const payments = uploadedPaymentLogos(paymentLogos).slice(0, 9);
 
-  const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
-    include: {
-      category: { include: { parent: true } },
-      brand: true,
-      reviews: {
-        where: { status: 'approved' },
-        orderBy: { createdAt: 'desc' },
-        take: 8,
-      },
-    },
-  });
+  const product = await getProduct(params.slug);
 
   if (!product || product.status !== 'published') notFound();
 
