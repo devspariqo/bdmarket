@@ -1,6 +1,6 @@
 -- BD Market — schema + demo data
 --
--- Generated 2026-09-17T11:27:48.866Z
+-- Generated 2026-09-17T12:03:42.503Z
 -- 22 tables populated with 664 rows.
 --
 -- ⚠️  This file DROPS and recreates every table. Import it into an empty
@@ -1356,9 +1356,9 @@ Sitemap: http://localhost:3000/sitemap.xml','textarea','robots.txt Content','202
 ('cmtzd3p9b007l670to6r2ur49','social','social_tiktok','','text','TikTok','2026-09-13 05:17:01.726'),
 ('cmtzd3p9b007m670tbo9qseyl','social','social_twitter','','text','X (Twitter)','2026-09-13 05:17:01.726'),
 ('cmtzd3p9b007n670t405bqown','social','social_linkedin','','text','LinkedIn','2026-09-13 05:17:01.726'),
-('cmtzd3p9b007o670tye2bvlls','advanced','advanced_api_key','bdm-api-dev-key','text','REST API Key','2026-09-13 05:17:01.726'),
-('cmtzd3p9b007p670tcm05as16','advanced','advanced_cache','true','boolean','Enable Page Cache','2026-09-13 05:17:01.726'),
-('cmtzd3p9b007q670tubqcgjzy','advanced','advanced_debug','false','boolean','Debug Mode','2026-09-13 05:17:01.726'),
+('cmtzd3p9b007o670tye2bvlls','advanced','advanced_api_key','bdm-api-dev-key','text','REST API Key','2026-09-17 12:01:20.340'),
+('cmtzd3p9b007p670tcm05as16','advanced','advanced_cache','true','boolean','Enable Page Cache','2026-09-17 12:01:20.340'),
+('cmtzd3p9b007q670tubqcgjzy','advanced','advanced_debug','false','boolean','Debug Mode','2026-09-17 12:01:20.340'),
 ('cmu0zp76k001vi90mkhfs06e4','payment_logos','payment_logos','[{"id":"bkash","label":"Bkash","logo":"/uploads/1789374804569-bkash-payments.png","color":"#e2136e","mark":""},{"id":"nagad","label":"Nagad","logo":"/uploads/1789374816763-nagad-payments.png","color":"#f58220","mark":""},{"id":"rocket","label":"Rocket","logo":"/uploads/1789374821198-rocket-payments.png","color":"#8c3494","mark":""},{"id":"visa","label":"VISA","logo":"/uploads/1789374844242-visa-payments.png","color":"#1a1f71","mark":""},{"id":"mastercard","label":"Mastercard","logo":"/uploads/1789374849720-mastercard-payments.png","color":"#eb001b","mark":""},{"id":"cod","label":"Cash On Delivery","logo":"/uploads/1789374994363-cod-payments.png","color":"#334155","mark":""}]','json','Accepted Payment Logos','2026-09-16 12:04:34.766'),
 ('cmu2nzbeb0emyj9he','general','footer_logo','','image','Footer Logo URL','2026-09-15 12:44:51.445'),
 ('cmu2op4xg3zdjqhvy','email','email_enabled','true','boolean','Enable Transactional Email','2026-09-15 13:04:56.116'),
@@ -1395,7 +1395,7 @@ Sitemap: http://localhost:3000/sitemap.xml','textarea','robots.txt Content','202
 ('cmu42jj27eieoepv8','sms','sms_notify_customer','true','boolean','SMS the Customer','2026-09-16 12:20:15.295'),
 ('cmu42jj2cteqj8cpc','sms','sms_notify_admin','true','boolean','SMS the Store','2026-09-16 12:20:15.300'),
 ('set-cart-redirect-1789634466699','checkout','cart_redirect_checkout','false','boolean','Go to Checkout After Adding to Cart','2026-09-17 08:41:06.699'),
-('set-admin-path-1789638582091','advanced','admin_path','admin','text','Admin Panel URL Path','2026-09-17 09:49:42.091');
+('set-admin-path-1789638582091','advanced','admin_path','admin','text','Admin Panel URL Path','2026-09-17 12:01:20.340');
 
 -- ShippingZone: 7 rows
 INSERT INTO `ShippingZone` (`id`, `name`, `districts`, `method`, `rate`, `freeOver`, `minDays`, `maxDays`, `codEnabled`, `status`, `position`, `createdAt`) VALUES
@@ -1415,7 +1415,7 @@ INSERT INTO `TaxRate` (`id`, `name`, `country`, `rate`, `inclusive`, `status`) V
 
 -- User: 11 rows
 INSERT INTO `User` (`id`, `email`, `passwordHash`, `name`, `phone`, `role`, `avatar`, `status`, `lastLoginAt`, `createdAt`, `updatedAt`) VALUES
-('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-17 11:26:31.723','2026-09-13 05:16:53.199','2026-09-17 11:26:31.724'),
+('cmtzd3ioe0000670thvmue476','admin@bdmarket.com.bd','$2a$10$cYco5z.yAlvxX75QDEaHmOQ2tvqCSt8rHeW23UkOiXvDIWH3ntwOm','Super Admin','+8801700000001','ADMIN',NULL,'active','2026-09-17 12:02:30.781','2026-09-13 05:16:53.199','2026-09-17 12:02:30.783'),
 ('cmtzd3itz0001670t7aq4m1y7','manager@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Store Manager','+8801700000002','MANAGER',NULL,'active',NULL,'2026-09-13 05:16:53.400','2026-09-13 05:16:53.400'),
 ('cmtzd3iwt0002670tzcju4d4d','editor@bdmarket.com.bd','$2a$10$5YGgyJt6icuv/wtVDySmi.ap60xeOsI7FJdLlrxdx79yOO17Ll6NO','Content Editor',NULL,'EDITOR',NULL,'active',NULL,'2026-09-13 05:16:53.501','2026-09-13 05:16:53.501'),
 ('cmtzd3nnk003e670t3jmaj1w1','rahim@example.com','$2a$10$aH29OSWJSP7lXgRL4Q7EOelB4FHg43g1gk4mAcJEqfZAy2TeQSrUu','Rahim Ahmed','+8801711000001','CUSTOMER',NULL,'active','2026-09-13 08:19:17.280','2026-09-13 05:16:59.649','2026-09-13 08:19:17.281'),

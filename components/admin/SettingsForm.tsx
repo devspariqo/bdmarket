@@ -28,12 +28,15 @@ export default function SettingsForm({
   title,
   description,
   columns = 2,
+  base = "/admin",
 }: {
   group: string;
   fields: Field[];
   title: string;
   description: string;
   columns?: 1 | 2;
+  /** The configured panel path, so a change to it can redirect correctly. */
+  base?: string;
 }) {
   const router = useRouter();
   const [values, setValues] = useState<Record<string, string>>(
@@ -42,6 +45,8 @@ export default function SettingsForm({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [err, setErr] = useState('');
+  // Set when this save moved the panel, so the UI can say where it is going.
+  const [moved, setMoved] = useState('');
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
 
   const dirty = fields.some((f) => values[f.key] !== f.value);
@@ -61,6 +66,25 @@ export default function SettingsForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save');
+
+      /**
+       * Changing the panel path moves the page the merchant is standing on.
+       *
+       * The panel's own links rebuild from the new value the instant it is saved,
+       * so every one of them 404s until the browser is somewhere valid — and the
+       * page currently open is about to stop existing too. Send them to the new
+       * path with a full page load, which also guarantees middleware has seen the
+       * change before the next request rather than relying on a client-side
+       * navigation landing in the same second.
+       */
+      if (data.panelPath && data.panelPath !== base) {
+        setMoved(data.panelPath);
+        setTimeout(() => {
+          window.location.href = data.panelPath;
+        }, 900);
+        return;
+      }
+
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       router.refresh();
@@ -86,17 +110,24 @@ export default function SettingsForm({
             <p className="mt-0.5 max-w-2xl text-[15px] text-ink-500">{description}</p>
           </div>
           <div className="flex items-center gap-2">
-            {saved && (
-              <span className="flex items-center gap-1 text-[13px] font-semibold text-emerald-600">
-                <Check className="h-3.5 w-3.5" /> Saved
+            {moved ? (
+              <span className="flex items-center gap-1.5 text-[13px] font-semibold text-brand-700">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Panel moved — opening {moved}
               </span>
+            ) : (
+              saved && (
+                <span className="flex items-center gap-1 text-[13px] font-semibold text-emerald-600">
+                  <Check className="h-3.5 w-3.5" /> Saved
+                </span>
+              )
             )}
-            {dirty && (
+            {dirty && !moved && (
               <button onClick={reset} className="btn-outline btn-sm">
                 <RotateCcw className="h-3.5 w-3.5" /> Reset
               </button>
             )}
-            <button onClick={save} disabled={saving || !dirty} className="btn-primary btn-sm">
+            <button onClick={save} disabled={saving || !dirty || !!moved} className="btn-primary btn-sm">
               {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               Save changes
             </button>

@@ -19,7 +19,25 @@ import { NextResponse, type NextRequest } from 'next/server';
  * store's lifetime, and an uncached lookup would add a round trip to every request
  * in the store, not just the admin.
  */
-const CACHE_MS = 30_000;
+/**
+ * How long a resolved path may be reused.
+ *
+ * This was 30 seconds, and that was the bug behind "changing the panel URL does
+ * not work". The merchant saves a new path; the panel's own links rebuild from the
+ * setting immediately, but middleware kept serving the *old* path for half a
+ * minute — so the new path 404'd, `/admin` still answered, and every link inside
+ * the panel was broken until the cache expired. Measured: immediately after
+ * saving, `/admin/...` returned 307 while `/bd-panel/...` returned 404, and the
+ * two only swapped once the window had passed.
+ *
+ * A one-second window keeps the benefit that matters — a single page load fires
+ * many requests (the RSC payload, prefetches, images) and they share one lookup —
+ * while making the staleness shorter than the time it takes to save and click
+ * something. `/api/panel-path` reads the app's own settings cache, which a save
+ * invalidates, so the value it returns is already fresh; only this window stands
+ * between the save and the new path working.
+ */
+const CACHE_MS = 1_000;
 let cachedPath = 'admin';
 let cachedAt = 0;
 /** The resolution in flight, so concurrent requests share it. */

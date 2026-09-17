@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getSettingsGroup } from '@/lib/settings';
+import { getAdminBase } from '@/lib/admin-path';
 import SettingsForm from '@/components/admin/SettingsForm';
 
 /**
@@ -316,6 +317,10 @@ export async function renderSettingsGroup(group: string) {
   const meta = SETTINGS_META[group];
   if (!meta) notFound();
 
+  // Needed by the form so that changing the panel path can send the merchant to
+  // the new one — see SettingsForm.save().
+  const base = await getAdminBase();
+
   const rows = await getSettingsGroup(group);
 
   /**
@@ -396,6 +401,7 @@ export async function renderSettingsGroup(group: string) {
         description={meta.description}
         columns={meta.columns ?? 2}
         fields={fields}
+        base={base}
       />
     </div>
   );

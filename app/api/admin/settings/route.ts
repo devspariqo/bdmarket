@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import prisma from '@/lib/db';
 import { setSettings, invalidateSettingsCache, getSettingsGroup } from '@/lib/settings';
+import { normaliseAdminPath } from '@/lib/admin-path';
 
 /** GET /api/admin/settings?group=general — read one group's settings. */
 export async function GET(req: Request) {
@@ -69,5 +70,20 @@ export async function PATCH(req: Request) {
     },
   });
 
-  return NextResponse.json({ ok: true, updated: entries.length });
+  return NextResponse.json({
+    ok: true,
+    updated: entries.length,
+    /**
+     * Present only when the panel path was part of this save.
+     *
+     * Changing it moves the page the merchant is standing on: the panel's links
+     * rebuild from the new value at once, so every one of them would 404 until the
+     * browser went somewhere valid. Returning the *normalised* value — not what
+     * was typed — lets the client send them to a URL that actually exists, and
+     * tells it when that is necessary at all.
+     */
+    panelPath: entries.some((e) => e.key === 'admin_path')
+      ? `/${normaliseAdminPath(values.admin_path)}`
+      : undefined,
+  });
 }
