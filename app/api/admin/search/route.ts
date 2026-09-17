@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import prisma from '@/lib/db';
+import { getAdminBase } from '@/lib/admin-path';
 
 /** GET /api/admin/search?q=term — global admin search (products, orders, customers). */
 export async function GET(req: Request) {
   const session = await requireAdmin();
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Results link into the panel, whose path is configurable.
+  const base = await getAdminBase();
 
   const q = new URL(req.url).searchParams.get('q')?.trim() || '';
   if (q.length < 2) return NextResponse.json({ results: [] });
@@ -48,21 +52,21 @@ export async function GET(req: Request) {
       id: p.id,
       title: p.name,
       subtitle: p.sku,
-      href: `/admin/products/${p.id}`,
+      href: `${base}/products/${p.id}`,
     })),
     ...orders.map((o) => ({
       type: 'order' as const,
       id: o.id,
       title: o.orderNumber,
       subtitle: `${o.customerName} • ${o.status}`,
-      href: `/admin/orders/${o.id}`,
+      href: `${base}/orders/${o.id}`,
     })),
     ...customers.map((c) => ({
       type: 'customer' as const,
       id: c.id,
       title: c.name,
       subtitle: c.email,
-      href: `/admin/customers?q=${encodeURIComponent(c.email)}`,
+      href: `${base}/customers?q=${encodeURIComponent(c.email)}`,
     })),
   ];
 
