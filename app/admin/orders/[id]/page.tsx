@@ -8,11 +8,13 @@ import {
   PAYMENT_METHOD_LABEL, cn,
 } from '@/lib/utils';
 import OrderStatusUpdater from '@/components/admin/OrderStatusUpdater';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Order Details' };
 export const dynamic = 'force-dynamic';
 
 export default async function AdminOrderDetail({ params }: { params: { id: string } }) {
+  const base = await getAdminBase();
   const order = await prisma.order.findUnique({
     where: { id: params.id },
     include: {
@@ -33,7 +35,7 @@ export default async function AdminOrderDetail({ params }: { params: { id: strin
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/admin/orders" className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-700 hover:underline">
+          <Link href={`${base}/orders`} className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-brand-700 hover:underline">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to orders
           </Link>
           <div className="flex flex-wrap items-center gap-3">

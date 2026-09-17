@@ -16,11 +16,13 @@ import {
 import RevenueChart from '@/components/admin/charts/RevenueChart';
 import StatusDonut from '@/components/admin/charts/StatusDonut';
 import CategoryBar from '@/components/admin/charts/CategoryBar';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Dashboard' };
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
+  const base = await getAdminBase();
   const [stats, series, statuses, tops, orders, lowStock, districts, categories] = await Promise.all([
     dashboardStats(),
     revenueSeries(30),
@@ -77,8 +79,8 @@ export default async function AdminDashboard() {
           </p>
         </div>
         <div className="flex gap-2.5">
-          <Link href="/admin/products/new" className="btn-dark btn-sm">+ Add Product</Link>
-          <Link href="/admin/orders" className="btn-outline btn-sm">View Orders</Link>
+          <Link href={`${base}/products/new`} className="btn-dark btn-sm">+ Add Product</Link>
+          <Link href={`${base}/orders`} className="btn-outline btn-sm">View Orders</Link>
         </div>
       </div>
 
@@ -135,7 +137,7 @@ export default async function AdminDashboard() {
               <h2 className="font-display text-lg font-bold text-ink-900">Revenue Overview</h2>
               <p className="mt-0.5 text-[13px] text-ink-500">Last 30 days performance</p>
             </div>
-            <Link href="/admin/analytics" className="text-[13px] font-semibold text-brand-700 hover:underline">
+            <Link href={`${base}/analytics`} className="text-[13px] font-semibold text-brand-700 hover:underline">
               Details →
             </Link>
           </div>
@@ -155,7 +157,7 @@ export default async function AdminDashboard() {
         <div className="overflow-hidden rounded-2xl border border-ink-200/70 bg-white shadow-soft">
           <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
             <h2 className="font-display text-lg font-bold text-ink-900">Recent Orders</h2>
-            <Link href="/admin/orders" className="text-[13px] font-semibold text-brand-700 hover:underline">View all →</Link>
+            <Link href={`${base}/orders`} className="text-[13px] font-semibold text-brand-700 hover:underline">View all →</Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -202,7 +204,7 @@ export default async function AdminDashboard() {
         <div className="rounded-2xl border border-ink-200/70 bg-white shadow-soft">
           <div className="flex items-center justify-between border-b border-ink-100 px-5 py-4">
             <h2 className="font-display text-lg font-bold text-ink-900">Top Selling</h2>
-            <Link href="/admin/products" className="text-[13px] font-semibold text-brand-700 hover:underline">All →</Link>
+            <Link href={`${base}/products`} className="text-[13px] font-semibold text-brand-700 hover:underline">All →</Link>
           </div>
           <div className="divide-y divide-ink-100">
             {tops.map((p, i) => (
@@ -241,7 +243,7 @@ export default async function AdminDashboard() {
             <h2 className="flex items-center gap-2 font-display text-lg font-bold text-ink-900">
               <AlertTriangle className="h-4 w-4 text-rose-500" /> Low Stock
             </h2>
-            <Link href="/admin/inventory" className="text-[13px] font-semibold text-brand-700 hover:underline">Manage →</Link>
+            <Link href={`${base}/inventory`} className="text-[13px] font-semibold text-brand-700 hover:underline">Manage →</Link>
           </div>
           <div className="divide-y divide-ink-100">
             {lowStock.map((p) => (

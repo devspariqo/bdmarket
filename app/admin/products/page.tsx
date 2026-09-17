@@ -5,6 +5,7 @@ import { Plus, Search, Filter, Download, Edit, Trash2, Eye, PackageX } from 'luc
 import prisma from '@/lib/db';
 import { formatPrice, formatDate, parseJSON, cn } from '@/lib/utils';
 import ProductRowActions from '@/components/admin/ProductRowActions';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Products' };
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,7 @@ export default async function AdminProductsPage({
 }: {
   searchParams: { q?: string; status?: string; category?: string; page?: string; stock?: string };
 }) {
+  const base = await getAdminBase();
   const page = Math.max(1, Number(searchParams.page) || 1);
   const perPage = 20;
   const q = searchParams.q?.trim();
@@ -64,7 +66,7 @@ export default async function AdminProductsPage({
           <Link href="/api/admin/products/export" className="btn-outline btn-sm">
             <Download className="h-3.5 w-3.5" /> Export CSV
           </Link>
-          <Link href="/admin/products/new" className="btn-primary btn-sm">
+          <Link href={`${base}/products/new`} className="btn-primary btn-sm">
             <Plus className="h-3.5 w-3.5" /> Add Product
           </Link>
         </div>
@@ -105,7 +107,7 @@ export default async function AdminProductsPage({
             </select>
           </div>
           <button type="submit" className="btn-dark btn-sm"><Filter className="h-3.5 w-3.5" /> Filter</button>
-          <Link href="/admin/products" className="btn-ghost btn-sm">Reset</Link>
+          <Link href={`${base}/products`} className="btn-ghost btn-sm">Reset</Link>
         </form>
       </div>
 
@@ -199,7 +201,7 @@ export default async function AdminProductsPage({
             <PackageX className="mx-auto mb-3 h-9 w-9 text-ink-300" />
             <p className="text-[15px] font-semibold text-ink-700">No products found</p>
             <p className="mt-1 text-[13px] text-ink-500">Try changing your filters or add a new product.</p>
-            <Link href="/admin/products/new" className="btn-primary btn-sm mt-4">Add Product</Link>
+            <Link href={`${base}/products/new`} className="btn-primary btn-sm mt-4">Add Product</Link>
           </div>
         )}
       </div>

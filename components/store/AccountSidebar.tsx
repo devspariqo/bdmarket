@@ -15,7 +15,7 @@ const links = [
   { href: '/account/profile', key: 'profile', icon: User, label: 'Profile' },
 ];
 
-export default function AccountSidebar({ active, name }: { active: string; name: string }) {
+export default function AccountSidebar({ active, name, avatar }: { active: string; name: string; avatar?: string | null }) {
   const router = useRouter();
 
   async function logout() {
@@ -30,8 +30,13 @@ export default function AccountSidebar({ active, name }: { active: string; name:
       <aside className="sticky top-32 hidden h-fit lg:block">
         <div className="rounded-2xl border border-ink-200 bg-white p-3">
           <div className="mb-2 flex items-center gap-3 border-b border-ink-100 px-2 pb-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-[15px] font-bold text-brand-700">
-              {name.charAt(0)}
+            <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-100 text-[15px] font-bold text-brand-700">
+              {avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatar} alt={name} className="h-full w-full object-cover" />
+              ) : (
+                name.charAt(0)
+              )}
             </span>
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold text-ink-900">{name}</p>

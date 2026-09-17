@@ -302,10 +302,12 @@ export const SETTINGS_META: Record<string, Meta> = {
   },
   advanced: {
     title: 'Advanced',
-    description: 'REST API access, caching and debug toggles.',
+    description: 'REST API access, the admin panel URL, caching and debug toggles.',
     hints: {
       advanced_api_key: 'Sent as the x-api-key header. Rotate this before going to production.',
       advanced_debug: 'Shows stack traces in error responses. Never enable in production.',
+      admin_path:
+        'The path the admin panel is served on, e.g. "bd-panel" gives /bd-panel. Leave as "admin" for the default. While a custom path is set, /admin returns 404 so scanners cannot find the login form. This is obscurity, not security — it does not stop anyone who knows the path, so keep a strong password. Lowercase letters, digits and hyphens only; reserved words like api, shop and checkout are ignored.',
     },
   },
 };

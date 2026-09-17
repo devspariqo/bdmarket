@@ -44,6 +44,7 @@ CREATE TABLE `Customer` (
     `district` VARCHAR(191) NULL,
     `tags` TEXT NULL,
     `notes` TEXT NULL,
+    `avatar` TEXT NULL,
     `totalSpent` DOUBLE NOT NULL DEFAULT 0,
     `orderCount` INTEGER NOT NULL DEFAULT 0,
     `acceptsMarketing` BOOLEAN NOT NULL DEFAULT true,

@@ -6,7 +6,7 @@
 -- truncation makes it unparseable and the interface renders empty — the menu,
 -- the payment logos and the product images all failed this way.
 --
--- 99 columns in total.
+-- 100 columns in total.
 --
 -- HOW TO RUN
 --   hPanel -> Databases -> phpMyAdmin -> select your database -> SQL tab,
@@ -30,6 +30,7 @@ ALTER TABLE `User` MODIFY `avatar` TEXT NULL;
 ALTER TABLE `AuditLog` MODIFY `meta` TEXT NULL;
 ALTER TABLE `Customer` MODIFY `tags` TEXT NULL;
 ALTER TABLE `Customer` MODIFY `notes` TEXT NULL;
+ALTER TABLE `Customer` MODIFY `avatar` TEXT NULL;
 ALTER TABLE `Category` MODIFY `description` TEXT NULL;
 ALTER TABLE `Category` MODIFY `image` TEXT NULL;
 ALTER TABLE `Category` MODIFY `metaTitle` TEXT NULL;

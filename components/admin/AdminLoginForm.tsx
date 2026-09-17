@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2, AlertCircle, LogIn } from 'lucide-react';
 
-export default function AdminLoginForm() {
+export default function AdminLoginForm({ base }: { base: string }) {
   const router = useRouter();
   const [email, setEmail] = useState('admin@bdmarket.com.bd');
   const [password, setPassword] = useState('admin123');
@@ -24,7 +24,7 @@ export default function AdminLoginForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
-      router.push('/admin');
+      router.push(base);
       router.refresh();
     } catch (e: any) {
       setErr(e.message);

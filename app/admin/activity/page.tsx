@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import prisma from '@/lib/db';
 import { formatDate, formatNumber, timeAgo } from '@/lib/utils';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const metadata: Metadata = { title: 'Activity Log' };
 export const dynamic = 'force-dynamic';
@@ -43,6 +44,7 @@ export default async function AdminActivityPage({
 }: {
   searchParams: { entity?: string; q?: string; page?: string };
 }) {
+  const base = await getAdminBase();
   const entity = searchParams.entity || 'all';
   const q = searchParams.q?.trim() || '';
   const page = Math.max(1, Number(searchParams.page || 1));
@@ -100,7 +102,7 @@ export default async function AdminActivityPage({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="scroll-x flex gap-1.5 pb-1">
-          <Link href="/admin/activity" className={`chip whitespace-nowrap ${entity === 'all' ? 'chip-active' : ''}`}>
+          <Link href={`${base}/activity`} className={`chip whitespace-nowrap ${entity === 'all' ? 'chip-active' : ''}`}>
             All
             <span className="rounded-full bg-black/10 px-1.5 text-[12px]">{totalAll}</span>
           </Link>

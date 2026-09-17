@@ -61,6 +61,7 @@ model Customer {
   district      String?
   tags          String? @db.Text // comma separated
   notes         String? @db.Text
+  avatar        String? @db.Text   // customer-uploaded profile photo
   totalSpent    Float     @default(0)
   orderCount    Int       @default(0)
   acceptsMarketing Boolean @default(true)

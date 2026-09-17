@@ -62,9 +62,12 @@ export default function LandingBuilder({
   initial,
   products,
   siteUrl,
+  base,
 }: {
   initial: PageState;
   products: LandingProduct[];
+  /** The configured panel path, for the Back link. */
+  base: string;
   siteUrl: string;
 }) {
   const router = useRouter();
@@ -249,7 +252,7 @@ export default function LandingBuilder({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <a
-            href="/admin/landing-pages"
+            href={`${base}/landing-pages`}
             className="btn-outline btn-sm"
             title="Back to the list"
             onClick={(e) => {

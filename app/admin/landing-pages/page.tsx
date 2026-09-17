@@ -4,6 +4,7 @@ import prisma from '@/lib/db';
 import { getSiteConfig } from '@/lib/settings';
 import { landingPath } from '@/lib/landing-blocks';
 import LandingPageList, { type LandingRow } from '@/components/admin/LandingPageList';
+import { getAdminBase } from '@/lib/admin-path';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,7 @@ export const metadata: Metadata = { title: 'Landing Pages' };
  * the list stays one round trip however many funnels the merchant builds.
  */
 export default async function AdminLandingPagesPage() {
+  const base = await getAdminBase();
   const [pages, grouped, config] = await Promise.all([
     prisma.landingPage.findMany({ orderBy: { updatedAt: 'desc' } }),
     // Cancelled orders are excluded from the revenue figure; counting them would
@@ -76,11 +78,11 @@ export default async function AdminLandingPagesPage() {
 
       <p className="text-[13px] text-ink-500">
         Need the order emails and SMS to work? Set them up under{' '}
-        <Link href="/admin/settings/email" className="font-semibold text-brand-700 hover:underline">
+        <Link href={`${base}/settings/email`} className="font-semibold text-brand-700 hover:underline">
           Settings → Email
         </Link>{' '}
         and{' '}
-        <Link href="/admin/settings/sms" className="font-semibold text-brand-700 hover:underline">
+        <Link href={`${base}/settings/sms`} className="font-semibold text-brand-700 hover:underline">
           Settings → SMS
         </Link>
         . Landing-page orders use the same notification path as the cart checkout.

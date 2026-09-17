@@ -44,7 +44,7 @@ export default async function AccountPage() {
       </div>
 
       <div className="grid gap-7 lg:grid-cols-[230px_1fr]">
-        <AccountSidebar active="dashboard" name={customer.name} />
+        <AccountSidebar active="dashboard" name={customer.name} avatar={customer.avatar} />
 
         <div className="space-y-6">
           {/* Stats */}

@@ -23,8 +23,8 @@ const TABS = [
 ] as const;
 
 export default function ProductEditor({
-  categories, brands, product,
-}: { categories: Cat[]; brands: Brand[]; product: any }) {
+  categories, brands, product, base,
+}: { categories: Cat[]; brands: Brand[]; product: any; base: string }) {
   const router = useRouter();
   const [tab, setTab] = useState<typeof TABS[number]['key']>('general');
   const [saving, setSaving] = useState(false);
@@ -164,7 +164,7 @@ export default function ProductEditor({
       setSaved(true);
       router.refresh();
       if (!product && data.product?.id) {
-        router.push(`/admin/products/${data.product.id}`);
+        router.push(`${base}/products/${data.product.id}`);
       }
       setTimeout(() => setSaved(false), 2200);
     } catch (e: any) {
@@ -726,7 +726,7 @@ export default function ProductEditor({
                 Move to Draft
               </button>
             )}
-            <Link href="/admin/products" className="btn-ghost w-full">Cancel</Link>
+            <Link href={`${base}/products`} className="btn-ghost w-full">Cancel</Link>
           </div>
         </div>
 

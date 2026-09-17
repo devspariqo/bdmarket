@@ -622,6 +622,11 @@ async function main() {
     { group: 'advanced', key: 'advanced_api_key', value: 'bdm-api-dev-key', type: 'text', label: 'REST API Key' },
     { group: 'advanced', key: 'advanced_cache', value: 'true', type: 'boolean', label: 'Enable Page Cache' },
     { group: 'advanced', key: 'advanced_debug', value: 'false', type: 'boolean', label: 'Debug Mode' },
+    // The path the admin panel is served on. Obscurity, not security: it keeps
+    // automated scanners away from the login form, and is never a substitute for
+    // a strong password. Middleware rewrites this path to /admin and 404s /admin
+    // while it is set.
+    { group: 'advanced', key: 'admin_path', value: 'admin', type: 'text', label: 'Admin Panel URL Path' },
 
     // Accepted-payment brand logos for the footer 3x3 grid. Stored as one JSON
     // list so the admin can add/remove/reorder methods. An empty value means

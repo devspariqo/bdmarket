@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import prisma from '@/lib/db';
 import { getSiteConfig } from '@/lib/settings';
+import { getAdminBase } from '@/lib/admin-path';
 import { safeFirstImage } from '@/lib/cart';
 import { parseBlocks } from '@/lib/landing-blocks';
 import LandingBuilder from '@/components/admin/LandingBuilder';
@@ -19,7 +20,7 @@ export const metadata: Metadata = { title: 'Landing page builder' };
  * products stays a small payload.
  */
 export default async function AdminLandingBuilderPage({ params }: { params: { id: string } }) {
-  const [page, products, config] = await Promise.all([
+  const [page, products, config, base] = await Promise.all([
     prisma.landingPage.findUnique({ where: { id: params.id } }).catch(() => null),
     prisma.product
       .findMany({
@@ -31,6 +32,7 @@ export default async function AdminLandingBuilderPage({ params }: { params: { id
       })
       .catch(() => []),
     getSiteConfig(),
+    getAdminBase(),
   ]);
 
   if (!page) notFound();
@@ -46,6 +48,7 @@ export default async function AdminLandingBuilderPage({ params }: { params: { id
 
       <LandingBuilder
         siteUrl={config.siteUrl}
+        base={base}
         initial={{
           id: page.id,
           title: page.title,

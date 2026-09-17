@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import AdminLoginForm from '@/components/admin/AdminLoginForm';
 import { getSiteConfig } from '@/lib/settings';
+import { getAdminBase } from '@/lib/admin-path';
 import { Store } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
 
 export default async function AdminLoginPage() {
-  const config = await getSiteConfig();
+  const [config, base] = await Promise.all([getSiteConfig(), getAdminBase()]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-ink-950 p-4">
@@ -26,7 +27,7 @@ export default async function AdminLoginPage() {
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white p-6 shadow-pop sm:p-7">
-          <AdminLoginForm />
+          <AdminLoginForm base={base} />
         </div>
 
         <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">

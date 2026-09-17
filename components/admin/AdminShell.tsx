@@ -18,12 +18,14 @@ type NavGroup = {
 };
 
 export default function AdminShell({
-  children, user, config, badges,
+  children, user, config, badges, base,
 }: {
   children: React.ReactNode;
   user: { name: string; email: string; role: string; avatar?: string | null };
   config: { siteName: string; logo: string };
   badges: { orders: number; reviews: number; stock: number };
+  /** The configured panel path — every link in here is built from it. */
+  base: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -45,79 +47,79 @@ export default function AdminShell({
     {
       title: 'Overview',
       items: [
-        { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
-        { href: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+        { href: base, icon: LayoutDashboard, label: 'Dashboard', exact: true },
+        { href: `${base}/analytics`, icon: BarChart3, label: 'Analytics' },
       ],
     },
     {
       title: 'Catalogue',
       items: [
-        { href: '/admin/products', icon: Package, label: 'Products', badge: badges.stock },
-        { href: '/admin/categories', icon: FolderTree, label: 'Categories' },
-        { href: '/admin/brands', icon: Award, label: 'Brands' },
-        { href: '/admin/inventory', icon: Boxes, label: 'Inventory' },
-        { href: '/admin/reviews', icon: Star, label: 'Reviews', badge: badges.reviews },
+        { href: `${base}/products`, icon: Package, label: 'Products', badge: badges.stock },
+        { href: `${base}/categories`, icon: FolderTree, label: 'Categories' },
+        { href: `${base}/brands`, icon: Award, label: 'Brands' },
+        { href: `${base}/inventory`, icon: Boxes, label: 'Inventory' },
+        { href: `${base}/reviews`, icon: Star, label: 'Reviews', badge: badges.reviews },
       ],
     },
     {
       title: 'Sales',
       items: [
-        { href: '/admin/orders', icon: ShoppingCart, label: 'Orders', badge: badges.orders },
-        { href: '/admin/customers', icon: Users, label: 'Customers' },
-        { href: '/admin/coupons', icon: Ticket, label: 'Coupons' },
-        { href: '/admin/shipping', icon: Truck, label: 'Shipping Zones' },
-        { href: '/admin/payments', icon: CreditCard, label: 'Payment Methods' },
+        { href: `${base}/orders`, icon: ShoppingCart, label: 'Orders', badge: badges.orders },
+        { href: `${base}/customers`, icon: Users, label: 'Customers' },
+        { href: `${base}/coupons`, icon: Ticket, label: 'Coupons' },
+        { href: `${base}/shipping`, icon: Truck, label: 'Shipping Zones' },
+        { href: `${base}/payments`, icon: CreditCard, label: 'Payment Methods' },
       ],
     },
     {
       title: 'Growth',
       items: [
-        { href: '/admin/landing-pages', icon: Rocket, label: 'Landing Pages' },
+        { href: `${base}/landing-pages`, icon: Rocket, label: 'Landing Pages' },
       ],
     },
     {
       title: 'Content (CMS)',
       items: [
-        { href: '/admin/pages', icon: FileText, label: 'Pages' },
-        { href: '/admin/posts', icon: Newspaper, label: 'Blog Posts' },
-        { href: '/admin/menus', icon: Layers, label: 'Menus' },
-        { href: '/admin/banners', icon: Megaphone, label: 'Banners' },
-        { href: '/admin/media', icon: ImageIcon, label: 'Media Library' },
+        { href: `${base}/pages`, icon: FileText, label: 'Pages' },
+        { href: `${base}/posts`, icon: Newspaper, label: 'Blog Posts' },
+        { href: `${base}/menus`, icon: Layers, label: 'Menus' },
+        { href: `${base}/banners`, icon: Megaphone, label: 'Banners' },
+        { href: `${base}/media`, icon: ImageIcon, label: 'Media Library' },
       ],
     },
     {
       title: 'Settings',
       items: [
-        { href: '/admin/settings/general', icon: Store, label: 'General' },
-        { href: '/admin/settings/store', icon: Monitor, label: 'Store' },
-        { href: '/admin/settings/appearance', icon: Palette, label: 'Appearance' },
-        { href: '/admin/settings/homepage', icon: Megaphone, label: 'Homepage' },
-        { href: '/admin/settings/seo', icon: Globe, label: 'SEO' },
-        { href: '/admin/settings/checkout', icon: CreditCard, label: 'Checkout' },
-        { href: '/admin/settings/checkout-fields', icon: FileText, label: 'Checkout Form' },
-        { href: '/admin/settings/payments', icon: Percent, label: 'Payment Settings' },
-        { href: '/admin/settings/payment-logos', icon: CreditCard, label: 'Payment Logos' },
-        { href: '/admin/settings/shipping', icon: Truck, label: 'Shipping Settings' },
-        { href: '/admin/settings/courier', icon: Bike, label: 'Courier & Delivery' },
-        { href: '/admin/settings/email', icon: Mail, label: 'Email & SMTP' },
-        { href: '/admin/settings/sms', icon: ShieldCheck, label: 'SMS Gateway' },
-        { href: '/admin/settings/social', icon: Globe, label: 'Social Media' },
-        { href: '/admin/settings/analytics', icon: BarChart3, label: 'Analytics Codes' },
-        { href: '/admin/settings/advanced', icon: Settings, label: 'Advanced' },
+        { href: `${base}/settings/general`, icon: Store, label: 'General' },
+        { href: `${base}/settings/store`, icon: Monitor, label: 'Store' },
+        { href: `${base}/settings/appearance`, icon: Palette, label: 'Appearance' },
+        { href: `${base}/settings/homepage`, icon: Megaphone, label: 'Homepage' },
+        { href: `${base}/settings/seo`, icon: Globe, label: 'SEO' },
+        { href: `${base}/settings/checkout`, icon: CreditCard, label: 'Checkout' },
+        { href: `${base}/settings/checkout-fields`, icon: FileText, label: 'Checkout Form' },
+        { href: `${base}/settings/payments`, icon: Percent, label: 'Payment Settings' },
+        { href: `${base}/settings/payment-logos`, icon: CreditCard, label: 'Payment Logos' },
+        { href: `${base}/settings/shipping`, icon: Truck, label: 'Shipping Settings' },
+        { href: `${base}/settings/courier`, icon: Bike, label: 'Courier & Delivery' },
+        { href: `${base}/settings/email`, icon: Mail, label: 'Email & SMTP' },
+        { href: `${base}/settings/sms`, icon: ShieldCheck, label: 'SMS Gateway' },
+        { href: `${base}/settings/social`, icon: Globe, label: 'Social Media' },
+        { href: `${base}/settings/analytics`, icon: BarChart3, label: 'Analytics Codes' },
+        { href: `${base}/settings/advanced`, icon: Settings, label: 'Advanced' },
       ],
     },
     {
       title: 'System',
       items: [
-        { href: '/admin/users', icon: Users, label: 'Admin Users' },
-        { href: '/admin/activity', icon: ShieldCheck, label: 'Activity Log' },
+        { href: `${base}/users`, icon: Users, label: 'Admin Users' },
+        { href: `${base}/activity`, icon: ShieldCheck, label: 'Activity Log' },
       ],
     },
   ];
 
   async function logout() {
     await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/admin/login');
+    router.push(`${base}/login`);
     router.refresh();
   }
 
@@ -130,7 +132,7 @@ export default function AdminShell({
     <nav className="flex h-full flex-col">
       {/* Brand — shows the uploaded logo when one is configured */}
       <div className={cn('flex h-16 shrink-0 items-center gap-2.5 border-b border-ink-100 px-4', collapsed && 'justify-center px-3')}>
-        <Link href="/admin" className="flex min-w-0 items-center gap-2.5" aria-label={`${config.siteName} admin`}>
+        <Link href={base} className="flex min-w-0 items-center gap-2.5" aria-label={`${config.siteName} admin`}>
           {config.logo ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -273,7 +275,7 @@ export default function AdminShell({
             </button>
 
             {/* Search */}
-            <form action="/admin/products" className="relative hidden max-w-sm flex-1 sm:block">
+            <form action={`${base}/products`} className="relative hidden max-w-sm flex-1 sm:block">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
               <input
                 name="q"
@@ -285,7 +287,7 @@ export default function AdminShell({
 
             <div className="ml-auto flex items-center gap-1.5">
               <Link
-                href="/admin/orders?status=PENDING"
+                href={`${base}/orders?status=PENDING`}
                 className="relative rounded-lg p-2.5 text-ink-600 transition hover:bg-ink-100"
                 aria-label="Notifications"
               >
@@ -330,7 +332,7 @@ export default function AdminShell({
                           {user.role}
                         </span>
                       </div>
-                      <Link href="/admin/settings/general" className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-ink-700 transition hover:bg-ink-50">
+                      <Link href={`${base}/settings/general`} className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-ink-700 transition hover:bg-ink-50">
                         <Settings className="h-4 w-4 text-ink-400" /> Store Settings
                       </Link>
                       <Link href="/" target="_blank" className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] font-medium text-ink-700 transition hover:bg-ink-50">
@@ -350,7 +352,7 @@ export default function AdminShell({
           </div>
 
           {/* Breadcrumb */}
-          <Breadcrumbs pathname={pathname} />
+          <Breadcrumbs pathname={pathname} base={base} />
         </header>
 
         <main className="p-4 sm:p-6">{children}</main>
@@ -359,13 +361,13 @@ export default function AdminShell({
   );
 }
 
-function Breadcrumbs({ pathname }: { pathname: string }) {
+function Breadcrumbs({ pathname, base }: { pathname: string; base: string }) {
   const parts = pathname.split('/').filter(Boolean);
   if (parts.length <= 1) return null;
 
   return (
     <div className="flex h-9 items-center gap-1.5 border-t border-ink-100 px-4 text-[12px] text-ink-500 sm:px-6">
-      <Link href="/admin" className="hover:text-brand-700">Admin</Link>
+      <Link href={base} className="hover:text-brand-700">Admin</Link>
       {parts.slice(1).map((p, i) => (
         <span key={i} className="flex items-center gap-1.5">
           <ChevronRight className="h-3 w-3 text-ink-300" />

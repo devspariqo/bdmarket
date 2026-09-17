@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Search, Filter, Download, Eye, Package } from 'lucide-react';
 import prisma from '@/lib/db';
+import { getAdminBase } from '@/lib/admin-path';
 import {
   formatPrice, formatDate, ORDER_STATUS_LABEL, ORDER_STATUS_COLOR,
   PAYMENT_METHOD_LABEL, cn, parseJSON,
@@ -15,6 +16,7 @@ export default async function AdminOrdersPage({
 }: {
   searchParams: { q?: string; status?: string; payment?: string; page?: string; from?: string; to?: string };
 }) {
+  const base = await getAdminBase();
   const page = Math.max(1, Number(searchParams.page) || 1);
   const perPage = 25;
   const q = searchParams.q?.trim();
@@ -136,7 +138,7 @@ export default async function AdminOrdersPage({
         </div>
         {searchParams.status && <input type="hidden" name="status" value={searchParams.status} />}
         <button type="submit" className="btn-dark btn-sm"><Filter className="h-3.5 w-3.5" /> Search</button>
-        <Link href="/admin/orders" className="btn-ghost btn-sm">Reset</Link>
+        <Link href={`${base}/orders`} className="btn-ghost btn-sm">Reset</Link>
       </form>
 
       {/* Table */}
