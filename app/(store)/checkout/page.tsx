@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { ShoppingBag } from 'lucide-react';
 import { getCartWithTotals } from '@/lib/cart';
-import { getSiteConfig } from '@/lib/settings';
+import { getSiteConfig, getCheckoutFields } from '@/lib/settings';
 import { getCustomerSession } from '@/lib/auth';
 import prisma from '@/lib/db';
 import CheckoutClient from '@/components/store/CheckoutClient';
@@ -17,10 +17,13 @@ export const metadata: Metadata = {
 export const dynamic = 'force-dynamic';
 
 export default async function CheckoutPage() {
-  const [data, config, session] = await Promise.all([
+  const [data, config, session, checkoutFields] = await Promise.all([
     getCartWithTotals(),
     getSiteConfig(),
     getCustomerSession(),
+    // Shares the same settings read as getSiteConfig() — getAllSettings now
+    // de-duplicates concurrent callers, so this costs no extra query.
+    getCheckoutFields(),
   ]);
 
   if (!data.items.length) redirect('/cart');
@@ -72,6 +75,7 @@ export default async function CheckoutPage() {
         } : null}
         freeShippingOver={config.freeShippingOver}
         guestCheckout={config.guestCheckout}
+        fields={checkoutFields}
       />
     </div>
   );

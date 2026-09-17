@@ -94,6 +94,7 @@ export default function AdminShell({
         { href: '/admin/settings/homepage', icon: Megaphone, label: 'Homepage' },
         { href: '/admin/settings/seo', icon: Globe, label: 'SEO' },
         { href: '/admin/settings/checkout', icon: CreditCard, label: 'Checkout' },
+        { href: '/admin/settings/checkout-fields', icon: FileText, label: 'Checkout Form' },
         { href: '/admin/settings/payments', icon: Percent, label: 'Payment Settings' },
         { href: '/admin/settings/payment-logos', icon: CreditCard, label: 'Payment Logos' },
         { href: '/admin/settings/shipping', icon: Truck, label: 'Shipping Settings' },

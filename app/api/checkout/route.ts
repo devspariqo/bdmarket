@@ -4,6 +4,7 @@ import prisma from '@/lib/db';
 import { getCustomerSession } from '@/lib/auth';
 import { orderNumber } from '@/lib/utils';
 import { notifyOrderPlaced } from '@/lib/notifications';
+import { getCheckoutFields } from '@/lib/settings';
 
 export async function POST(req: Request) {
   try {
@@ -13,21 +14,55 @@ export async function POST(req: Request) {
       paymentMethod = 'cod', shippingMethod, customerNote, couponCode,
     } = body;
 
-    // Validation
+    /**
+     * Validate against the merchant's field configuration, not a hardcoded list.
+     *
+     * The form sends the same rules for instant feedback, but this is the copy
+     * that matters — the client list is editable in devtools. Reading it from
+     * settings also means the merchant can change what is mandatory without a
+     * deploy.
+     */
+    const fieldConfig = await getCheckoutFields();
+    const needs = (key: string) => {
+      const f = fieldConfig.find((x) => x.key === key);
+      return !!f && f.show && f.required;
+    };
+    const labelFor = (key: string, fallback: string) =>
+      fieldConfig.find((x) => x.key === key)?.label || fallback;
+
     const errors: Record<string, string> = {};
-    if (!customerName?.trim()) errors.customerName = 'Full name is required';
-    if (!phone?.trim()) errors.phone = 'Phone number is required';
-    else if (!/^(\+?880|0)?1[3-9]\d{8}$/.test(phone.replace(/[\s-]/g, '')))
+
+    if (needs('customerName') && !customerName?.trim())
+      errors.customerName = `${labelFor('customerName', 'Full name')} is required`;
+
+    if (needs('phone') && !phone?.trim()) errors.phone = `${labelFor('phone', 'Mobile number')} is required`;
+    else if (phone?.trim() && !/^(\+?880|0)?1[3-9]\d{8}$/.test(phone.replace(/[\s-]/g, '')))
       errors.phone = 'Enter a valid Bangladeshi mobile number';
-    if (!email?.trim()) errors.email = 'Email is required';
-    else if (!/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Enter a valid email';
-    if (!division) errors.division = 'Division is required';
-    if (!district) errors.district = 'District is required';
-    if (!street?.trim()) errors.street = 'Address is required';
+
+    // The format is checked whenever an address is supplied, even if it is not
+    // required — a malformed one that got through would silently break the
+    // confirmation email.
+    if (needs('email') && !email?.trim()) errors.email = `${labelFor('email', 'Email')} is required`;
+    else if (email?.trim() && !/^\S+@\S+\.\S+$/.test(email)) errors.email = 'Enter a valid email';
+
+    if (needs('division') && !division) errors.division = 'Division is required';
+    if (needs('district') && !district) errors.district = 'District is required';
+    if (needs('area') && !area?.trim()) errors.area = `${labelFor('area', 'Area')} is required`;
+    if (needs('street') && !street?.trim()) errors.street = `${labelFor('street', 'Address')} is required`;
+    if (needs('postcode') && !postcode?.trim())
+      errors.postcode = `${labelFor('postcode', 'Postcode')} is required`;
+    if (needs('customerNote') && !customerNote?.trim())
+      errors.customerNote = `${labelFor('customerNote', 'Order note')} is required`;
 
     if (Object.keys(errors).length) {
       return NextResponse.json({ error: 'Validation failed', errors }, { status: 400 });
     }
+
+    // The address columns are NOT NULL, so a checkout that does not collect a
+    // division or district still has to record something. Dhaka is the sane
+    // default for a Bangladeshi store.
+    const shipDivision = division || 'Dhaka';
+    const shipDistrict = district || 'Dhaka';
 
     const token = cookies().get('bdm_cart')?.value;
     if (!token) return NextResponse.json({ error: 'Your cart is empty' }, { status: 400 });
@@ -123,10 +158,10 @@ export async function POST(req: Request) {
         couponCode: appliedCoupon,
         shippingMethod: shippingCost === 0 ? 'Free Delivery' : shippingMethod || 'Standard Delivery',
         shippingZone: zone?.name || 'Standard',
-        shipDivision: division,
-        shipDistrict: district,
+        shipDivision,
+        shipDistrict,
         shipArea: area || '',
-        shipStreet: street,
+        shipStreet: street || '',
         shipPostcode: postcode || '',
         customerNote: customerNote || null,
         ipAddress: req.headers.get('x-forwarded-for') || 'local',

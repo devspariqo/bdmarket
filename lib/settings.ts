@@ -1,5 +1,6 @@
 import prisma from './db';
 import { parsePaymentLogos, type PaymentLogo } from './payment-logos';
+import { parseCheckoutFields, type CheckoutField } from './checkout-fields';
 
 // ─── Settings access with in-request cache ───
 
@@ -80,6 +81,17 @@ export async function getSettingsGroup(group: string) {
 export async function getPaymentLogos(): Promise<PaymentLogo[]> {
   const all = await getAllSettings();
   return parsePaymentLogos(all['payment_logos']);
+}
+
+/**
+ * Which fields the checkout form asks for, and which are required.
+ *
+ * Falls back to the built-in defaults when nothing has been saved, so a store
+ * that has never opened the settings page still has a working checkout.
+ */
+export async function getCheckoutFields(): Promise<CheckoutField[]> {
+  const all = await getAllSettings();
+  return parseCheckoutFields(all['checkout_fields']);
 }
 
 export async function setSetting(key: string, value: string, group?: string, type?: string, label?: string) {

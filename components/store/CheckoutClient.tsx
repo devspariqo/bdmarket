@@ -7,6 +7,7 @@ import {
   Loader2, Lock, Check, ChevronRight, Truck, MapPin, CreditCard, Tag, AlertCircle, ShieldCheck,
 } from 'lucide-react';
 import { formatPrice, BD_DIVISIONS, BD_DISTRICTS, cn } from '@/lib/utils';
+import type { CheckoutField } from '@/lib/checkout-fields';
 
 type Item = {
   id: string; slug: string; name: string; image: string; price: number; qty: number; variant: string | null;
@@ -86,6 +87,7 @@ function Field({
 
 export default function CheckoutClient({
   items, summary, paymentMethods, zones, customer, savedAddress, freeShippingOver, guestCheckout,
+  fields = [],
 }: {
   items: Item[];
   summary: { subtotal: number; discount: number; shipping: number; total: number; coupon: any };
@@ -95,6 +97,14 @@ export default function CheckoutClient({
   savedAddress: { division: string; district: string; area: string; street: string; postcode: string } | null;
   freeShippingOver: number;
   guestCheckout: boolean;
+  /**
+   * Which fields to ask for, from Settings → Checkout Form.
+   *
+   * Optional with an empty default so an older caller cannot break the form: an
+   * absent config falls back to showing everything, which is the behaviour that
+   * existed before the setting did.
+   */
+  fields?: CheckoutField[];
 }) {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
@@ -117,6 +127,24 @@ export default function CheckoutClient({
 
   const districts = BD_DISTRICTS[form.division] || [];
 
+  /**
+   * Field configuration from Settings → Checkout Form.
+   *
+   * `show`/`label`/`placeholder`/`required` come from the merchant; the field
+   * *keys* are fixed because each maps to a column on Order. Defaults are
+   * permissive so a store that has never opened the settings page renders exactly
+   * the form it did before the setting existed.
+   */
+  const cfg = useMemo(() => new Map(fields.map((f) => [f.key, f])), [fields]);
+  const shows = (key: string) => cfg.get(key)?.show ?? true;
+  const needs = (key: string) => {
+    const f = cfg.get(key);
+    return f ? f.show && f.required : ['customerName', 'phone', 'district', 'street'].includes(key);
+  };
+  const labelOf = (key: string, fallback: string) => cfg.get(key)?.label || fallback;
+  const phOf = (key: string, fallback: string) => cfg.get(key)?.placeholder || fallback;
+  const star = (key: string) => (needs(key) ? <span className="text-rose-500"> *</span> : null);
+
   // Resolve shipping
   const shipping = useMemo(() => {
     const zone = zones.find((z) => z.districts === 'ALL' || z.districts.includes(form.district));
@@ -137,14 +165,30 @@ export default function CheckoutClient({
 
   function validateInfo() {
     const e: Record<string, string> = {};
-    if (!form.customerName.trim()) e.customerName = 'Full name is required';
-    if (!form.phone.trim()) e.phone = 'Phone number is required';
-    else if (!/^(\+?880|0)?1[3-9]\d{8}$/.test(form.phone.replace(/[\s-]/g, '')))
+
+    // Driven by the merchant's required list rather than hardcoded, so a field
+    // they marked optional no longer blocks the order — and one they marked
+    // mandatory cannot be skipped. The server re-checks the same list.
+    const name = form.customerName.trim();
+    if (needs('customerName') && !name) e.customerName = `${labelOf('customerName', 'Full name')} is required`;
+
+    const phone = form.phone.trim();
+    if (needs('phone') && !phone) e.phone = `${labelOf('phone', 'Mobile number')} is required`;
+    else if (phone && !/^(\+?880|0)?1[3-9]\d{8}$/.test(phone.replace(/[\s-]/g, '')))
       e.phone = 'Enter a valid BD mobile number (e.g. 01712345678)';
-    if (!form.email.trim()) e.email = 'Email is required';
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = 'Enter a valid email address';
-    if (!form.district) e.district = 'Please select a district';
-    if (!form.street.trim()) e.street = 'Street address is required';
+
+    const email = form.email.trim();
+    if (needs('email') && !email) e.email = `${labelOf('email', 'Email')} is required`;
+    else if (email && !/^\S+@\S+\.\S+$/.test(email)) e.email = 'Enter a valid email address';
+
+    if (needs('division') && !form.division) e.division = 'Please select a division';
+    if (needs('district') && !form.district) e.district = 'Please select a district';
+    if (needs('area') && !form.area.trim()) e.area = `${labelOf('area', 'Area')} is required`;
+    if (needs('street') && !form.street.trim()) e.street = `${labelOf('street', 'Address')} is required`;
+    if (needs('postcode') && !form.postcode.trim()) e.postcode = `${labelOf('postcode', 'Postcode')} is required`;
+    if (needs('customerNote') && !form.customerNote.trim())
+      e.customerNote = `${labelOf('customerNote', 'Order note')} is required`;
+
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -233,25 +277,34 @@ export default function CheckoutClient({
               </h2>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  id="customerName" label="Full Name" value={form.customerName}
-                  onChange={(v: string) => set('customerName', v)} error={errors.customerName}
-                  placeholder="Rahim Ahmed"
-                />
-                <Field
-                  id="phone" label="Mobile Number" value={form.phone} type="tel" inputMode="tel"
-                  onChange={(v: string) => set('phone', v)} error={errors.phone}
-                  placeholder="01712345678" hint="We'll call to confirm your order"
-                />
+                {shows('customerName') && (
+                  <Field
+                    id="customerName" label={labelOf('customerName', 'Full Name')} value={form.customerName}
+                    required={needs('customerName')}
+                    onChange={(v: string) => set('customerName', v)} error={errors.customerName}
+                    placeholder={phOf('customerName', 'Rahim Ahmed')}
+                  />
+                )}
+                {shows('phone') && (
+                  <Field
+                    id="phone" label={labelOf('phone', 'Mobile Number')} value={form.phone} type="tel" inputMode="tel"
+                    required={needs('phone')}
+                    onChange={(v: string) => set('phone', v)} error={errors.phone}
+                    placeholder={phOf('phone', '01712345678')} hint="We'll call to confirm your order"
+                  />
+                )}
               </div>
 
-              <div className="mt-4">
-                <Field
-                  id="email" label="Email Address" value={form.email} type="email"
-                  onChange={(v: string) => set('email', v)} error={errors.email}
-                  placeholder="you@example.com" hint="Order confirmation will be sent here"
-                />
-              </div>
+              {shows('email') && (
+                <div className="mt-4">
+                  <Field
+                    id="email" label={labelOf('email', 'Email Address')} value={form.email} type="email"
+                    required={needs('email')}
+                    onChange={(v: string) => set('email', v)} error={errors.email}
+                    placeholder={phOf('email', 'you@example.com')} hint="Order confirmation will be sent here"
+                  />
+                </div>
+              )}
             </section>
 
             {/* Address */}
@@ -260,54 +313,71 @@ export default function CheckoutClient({
                 <Truck className="h-4.5 w-4.5 text-brand-600" /> Shipping Address
               </h2>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="division" className="label">Division <span className="text-rose-500">*</span></label>
-                  <select
-                    id="division" value={form.division}
-                    onChange={(e) => { set('division', e.target.value); set('district', BD_DISTRICTS[e.target.value]?.[0] || ''); }}
-                    className="select"
-                  >
-                    {BD_DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
+              {(shows('division') || shows('district')) && (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {shows('division') && (
+                    <div>
+                      <label htmlFor="division" className="label">{labelOf('division', 'Division')}{star('division')}</label>
+                      <select
+                        id="division" value={form.division}
+                        onChange={(e) => { set('division', e.target.value); set('district', BD_DISTRICTS[e.target.value]?.[0] || ''); }}
+                        className="select"
+                      >
+                        {BD_DIVISIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                      {errors.division && <p className="mt-1 text-[12px] font-semibold text-rose-600">{errors.division}</p>}
+                    </div>
+                  )}
+                  {shows('district') && (
+                    <div>
+                      <label htmlFor="district" className="label">{labelOf('district', 'District')}{star('district')}</label>
+                      <select
+                        id="district" value={form.district}
+                        onChange={(e) => set('district', e.target.value)}
+                        className={cn('select', errors.district && 'border-rose-400')}
+                      >
+                        <option value="">Select district</option>
+                        {districts.map((d) => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                      {errors.district && <p className="mt-1 text-[12px] font-semibold text-rose-600">{errors.district}</p>}
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label htmlFor="district" className="label">District <span className="text-rose-500">*</span></label>
-                  <select
-                    id="district" value={form.district}
-                    onChange={(e) => set('district', e.target.value)}
-                    className={cn('select', errors.district && 'border-rose-400')}
-                  >
-                    <option value="">Select district</option>
-                    {districts.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                  {errors.district && <p className="mt-1 text-[12px] font-semibold text-rose-600">{errors.district}</p>}
+              )}
+
+              {(shows('area') || shows('postcode')) && (
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {shows('area') && (
+                    <Field
+                      id="area" label={labelOf('area', 'Area / Thana')} value={form.area} required={needs('area')}
+                      onChange={(v: string) => set('area', v)} error={errors.area}
+                      placeholder={phOf('area', 'Dhanmondi, Mirpur…')}
+                    />
+                  )}
+                  {shows('postcode') && (
+                    <Field
+                      id="postcode" label={labelOf('postcode', 'Post Code')} value={form.postcode} required={needs('postcode')}
+                      onChange={(v: string) => set('postcode', v)} error={errors.postcode}
+                      placeholder={phOf('postcode', '1205')}
+                    />
+                  )}
                 </div>
-              </div>
+              )}
 
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <Field
-                  id="area" label="Area / Thana" value={form.area} required={false}
-                  onChange={(v: string) => set('area', v)} placeholder="Dhanmondi, Mirpur…"
-                />
-                <Field
-                  id="postcode" label="Post Code" value={form.postcode} required={false}
-                  onChange={(v: string) => set('postcode', v)} placeholder="1205"
-                />
-              </div>
-
-              <div className="mt-4">
-                <label htmlFor="street" className="label">
-                  Full Address <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  id="street" rows={2} value={form.street}
-                  onChange={(e) => set('street', e.target.value)}
-                  placeholder="House / Flat, Road, Block, Landmark…"
-                  className={cn('textarea min-h-[70px]', errors.street && 'border-rose-400')}
-                />
-                {errors.street && <p className="mt-1 text-[12px] font-semibold text-rose-600">{errors.street}</p>}
-              </div>
+              {shows('street') && (
+                <div className="mt-4">
+                  <label htmlFor="street" className="label">
+                    {labelOf('street', 'Full Address')}{star('street')}
+                  </label>
+                  <textarea
+                    id="street" rows={2} value={form.street}
+                    onChange={(e) => set('street', e.target.value)}
+                    placeholder={phOf('street', 'House / Flat, Road, Block, Landmark…')}
+                    className={cn('textarea min-h-[70px]', errors.street && 'border-rose-400')}
+                  />
+                  {errors.street && <p className="mt-1 text-[12px] font-semibold text-rose-600">{errors.street}</p>}
+                </div>
+              )}
 
               {/* Shipping estimate */}
               <div className="mt-5 flex items-center justify-between rounded-xl bg-brand-50/70 px-4 py-3">
@@ -322,15 +392,22 @@ export default function CheckoutClient({
             </section>
 
             {/* Note */}
+            {shows('customerNote') && (
             <section className="rounded-2xl border border-ink-200 bg-white p-5">
-              <label htmlFor="note" className="label">Order Note (optional)</label>
+              <label htmlFor="note" className="label">
+                {labelOf('customerNote', 'Order Note')}{needs('customerNote') ? star('customerNote') : ' (optional)'}
+              </label>
               <textarea
                 id="note" rows={2} value={form.customerNote}
                 onChange={(e) => set('customerNote', e.target.value)}
-                placeholder="Delivery instructions, preferred time, gift message…"
-                className="textarea min-h-[70px]"
+                placeholder={phOf('customerNote', 'Delivery instructions, preferred time, gift message…')}
+                className={cn('textarea min-h-[70px]', errors.customerNote && 'border-rose-400')}
               />
+              {errors.customerNote && (
+                <p className="mt-1 text-[12px] font-semibold text-rose-600">{errors.customerNote}</p>
+              )}
             </section>
+            )}
 
             <button onClick={goToPayment} className="btn-primary btn-lg w-full">
               Continue to Payment <ChevronRight className="h-4 w-4" />
