@@ -3,6 +3,7 @@ import Header from '@/components/store/Header';
 import Footer from '@/components/store/Footer';
 import MobileBottomNav from '@/components/store/MobileBottomNav';
 import WhatsAppFloat from '@/components/store/WhatsAppFloat';
+import { CartBehaviourProvider } from '@/components/store/CartBehaviour';
 import { getSiteConfig, getPaymentLogos } from '@/lib/settings';
 import { getCartCount } from '@/lib/cart';
 import { getCustomerSession } from '@/lib/auth';
@@ -103,7 +104,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   };
 
   return (
-    <>
+    <CartBehaviourProvider redirectToCheckout={config.cartRedirectCheckout}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -122,9 +123,14 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         />
         <MobileBottomNav cartCount={cartCount} customer={customer} />
         {config.appearance.showWhatsappFloat && (
-          <WhatsAppFloat phone={config.whatsapp} siteName={config.siteName} />
+          <WhatsAppFloat
+            phone={config.whatsapp}
+            siteName={config.siteName}
+            logo={config.logo}
+            favicon={config.favicon}
+          />
         )}
       </div>
-    </>
+    </CartBehaviourProvider>
   );
 }

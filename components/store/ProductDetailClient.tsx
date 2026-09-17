@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ShoppingBag, Heart, Truck, Loader2, Check, Zap, ShieldCheck, AlertCircle } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { QtySelector } from './AddToCartButton';
+import { useCartBehaviour } from './CartBehaviour';
 
 type Variant = { id: string; size: string; color: string; price: number; stock: number; sku: string };
 
@@ -17,6 +18,7 @@ export default function ProductDetailClient({
   };
 }) {
   const router = useRouter();
+  const { redirectToCheckout } = useCartBehaviour();
   const [size, setSize] = useState(product.sizes[0] || '');
   const [color, setColor] = useState(product.colors[0] || '');
   const [qty, setQty] = useState(1);
@@ -46,7 +48,17 @@ export default function ProductDetailClient({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed');
-      if (thenCheckout) {
+      /**
+       * "Buy Now" always goes to checkout. Plain "Add to Cart" goes there too
+       * when Settings → Checkout says so.
+       *
+       * This component keeps its own add-to-cart logic rather than using
+       * `AddToCartButton`, so it does not inherit the setting automatically —
+       * without this, turning the setting on would redirect from the product
+       * cards but not from the product page's own button, which is the one a
+       * shopper on a funnel actually presses.
+       */
+      if (thenCheckout || redirectToCheckout) {
         router.push('/checkout');
       } else {
         setState('done');

@@ -509,6 +509,9 @@ async function main() {
     { group: 'checkout', key: 'checkout_max_qty', value: '10', type: 'number', label: 'Max Quantity Per Item' },
     { group: 'checkout', key: 'checkout_require_phone', value: 'true', type: 'boolean', label: 'Require Phone Number' },
     { group: 'checkout', key: 'checkout_order_note', value: 'true', type: 'boolean', label: 'Enable Order Note' },
+    // Off by default: right for a single-product funnel, hostile on a catalogue
+    // where a shopper is still browsing.
+    { group: 'checkout', key: 'cart_redirect_checkout', value: 'false', type: 'boolean', label: 'Go to Checkout After Adding to Cart' },
 
     // Shipping
     { group: 'shipping', key: 'shipping_enabled', value: 'true', type: 'boolean', label: 'Enable Shipping' },

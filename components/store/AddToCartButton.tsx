@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingBag, Check, Loader2, Minus, Plus } from 'lucide-react';
+import { useCartBehaviour } from './CartBehaviour';
 
 export default function AddToCartButton({
   productId, slug, name, price, image, stock, variant, compact = false, qty = 1, fullWidth = false,
@@ -20,6 +21,7 @@ export default function AddToCartButton({
 }) {
   const [state, setState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const router = useRouter();
+  const { redirectToCheckout } = useCartBehaviour();
 
   async function add(e: React.MouseEvent) {
     e.preventDefault();
@@ -34,6 +36,20 @@ export default function AddToCartButton({
       });
       if (!res.ok) throw new Error('failed');
       setState('done');
+
+      /**
+       * Settings → Checkout → "Go to checkout after adding".
+       *
+       * The button is left in its `done` state across the navigation, so there is
+       * no flash back to "Add to cart" while the next page loads — and no second
+       * click if the shopper is quick. The state is deliberately never reset on
+       * this path: the component unmounts with the page.
+       */
+      if (redirectToCheckout) {
+        router.push('/checkout');
+        return;
+      }
+
       router.refresh();
       setTimeout(() => setState('idle'), 1600);
     } catch {

@@ -158,6 +158,15 @@ export async function getSiteConfig() {
     maintenance: s.maintenance_mode === 'true',
     reviewsAutoApprove: s.reviews_auto_approve === 'true',
     guestCheckout: s.checkout_guest !== 'false',
+    /**
+     * Send the shopper straight to checkout after adding to cart.
+     *
+     * Right for a single-product funnel, wrong for a catalogue — browsing a shop
+     * and being thrown into checkout on every card is hostile. Off by default,
+     * and read through `CartBehaviourProvider` so a button deep in the tree does
+     * not need it threaded through as a prop.
+     */
+    cartRedirectCheckout: s.cart_redirect_checkout === 'true',
     social: {
       facebook: s.social_facebook || 'https://facebook.com',
       instagram: s.social_instagram || 'https://instagram.com',

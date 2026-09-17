@@ -145,6 +145,8 @@ export const SETTINGS_META: Record<string, Meta> = {
     hints: {
       checkout_min_order: 'Set to 0 to disable the minimum.',
       checkout_terms_url: 'Customers must accept these terms before placing an order.',
+      cart_redirect_checkout:
+        'On: adding to cart goes straight to the checkout page — good for a single-product funnel. Off: the shopper stays where they are and the cart count updates, which is what a browsing shopper expects.',
     },
   },
   shipping: {
